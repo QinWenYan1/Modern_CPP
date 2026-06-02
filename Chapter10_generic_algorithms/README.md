@@ -29,7 +29,7 @@
 
 ### 10.6 特定容器算法 📦
 list 和 forward_list 专属算法  
-[→ 查看笔记](./note_10_6_algorithms_specific_to_containers.md)
+[→ 查看笔记](./note_10_6_container_specific_algorithms.md)
 
 ### 章节总结 📝
 第 10 章核心概念速查表  

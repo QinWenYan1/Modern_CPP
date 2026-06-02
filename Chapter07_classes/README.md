@@ -9,7 +9,7 @@
 
 ### 7.1 定义抽象数据类型 🏗️
 类定义、成员函数、this 指针、const 成员函数  
-[→ 查看笔记](./note_7_1_defining_abstract_data_types.md)
+[→ 查看笔记](./note_7_1_defining_abstract_data_type.md)
 
 ### 7.2 访问控制与封装 🔒
 访问说明符、友元、封装原则  
@@ -29,7 +29,7 @@
 
 ### 7.6 类的静态成员 🌐
 静态成员定义、使用、静态成员函数  
-[→ 查看笔记](./note_7_6_static_class_members.md)
+[→ 查看笔记](./note_7_6_static_class_member.md)
 
 ### 章节总结 📝
 第 7 章核心概念速查表  

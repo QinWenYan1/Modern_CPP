@@ -9,7 +9,7 @@
 
 ### 15.1 OOP：概述 🎯
 面向对象基本概念、继承与动态绑定  
-[→ 查看笔记](./note_15_1_oop_an_overview.md)
+[→ 查看笔记](./note_15_1_an_overview.md)
 
 ### 15.2 定义基类和派生类 🏗️
 基类定义、派生类定义、虚函数、override/final  
@@ -29,7 +29,7 @@ public/protected/private 继承、using 声明改变访问权限
 
 ### 15.6 继承中的类作用域 🎯
 名字查找、名字隐藏、虚函数与作用域  
-[→ 查看笔记](./note_15_6_scope_under_inheritance.md)
+[→ 查看笔记](./note_15_6_class_scope_under_inheritance.md)
 
 ### 15.7 构造函数与拷贝控制 🔄
 派生类构造、析构、拷贝与移动  
@@ -37,15 +37,15 @@ public/protected/private 继承、using 声明改变访问权限
 
 ### 15.8 容器与继承 📦
 容器中存放继承层次对象、智能指针的使用  
-[→ 查看笔记](./note_15_8_containers_and_inheritance.md)
+[→ 查看笔记](./note_15_8_container_and_inheritance.md)
 
 ### 15.9 文本查询程序再探 📖
 使用面向对象重新实现文本查询程序  
-[→ 查看笔记](./note_15_9_text_query_program_revisited.md)
+[→ 查看笔记](./note_15_9_text_queries_revisited.md)
 
 ### 章节总结 📝
 第 15 章核心概念速查表  
-[→ 查看总结](./note_15_chapter_summary.md)
+[→ 查看总结](./note_15_summary.md)
 
 ### 练习题 💪
 本章所有练习代码  

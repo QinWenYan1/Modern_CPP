@@ -13,7 +13,7 @@ map、set 基本使用与场景
 
 ### 11.2 关联容器概述 📊
 关联容器类型、键类型要求、pair 类型  
-[→ 查看笔记](./note_11_2_overview_of_associative_containers.md)
+[→ 查看笔记](./note_11_2_overview_of_the_associative_container.md)
 
 ### 11.3 关联容器操作 🔧
 关联容器迭代器、添加元素、删除元素、下标操作  
@@ -21,7 +21,7 @@ map、set 基本使用与场景
 
 ### 11.4 无序容器 🔀
 无序容器管理、哈希函数、自定义哈希  
-[→ 查看笔记](./note_11_4_the_unordered_containers.md)
+[→ 查看笔记](./note_11_4_unordered_containers.md)
 
 ### 章节总结 📝
 第 11 章核心概念速查表  

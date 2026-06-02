@@ -9,7 +9,7 @@
 
 ### 14.1 基本概念 🎯
 运算符重载规则、选择成员或非成员实现  
-[→ 查看笔记](./note_14_1_basic_concepts.md)
+[→ 查看笔记](./note_14_1_basic_concept.md)
 
 ### 14.2 输入和输出运算符 📥📤
 重载 << 和 >> 运算符  
@@ -25,7 +25,7 @@
 
 ### 14.5 下标运算符 🔢
 重载 operator[]  
-[→ 查看笔记](./note_14_5_subscript_operator.md)
+[→ 查看笔记](./note_14_5_subscript_operators.md)
 
 ### 14.6 递增和递减运算符 ⬆️
 前置与后置 ++、--  
@@ -37,15 +37,15 @@
 
 ### 14.8 函数调用运算符 📞
 重载 ()、函数对象、Lambda  
-[→ 查看笔记](./note_14_8_function_call_operator.md)
+[→ 查看笔记](./note_14_8_function_call_operators.md)
 
 ### 14.9 重载、类型转换与运算符 🔄
 类型转换运算符、避免二义性  
-[→ 查看笔记](./note_14_9_overloading_conversions_and_operators.md)
+[→ 查看笔记](./note_14_9_overloading_conversions_operators.md)
 
 ### 章节总结 📝
 第 14 章核心概念速查表  
-[→ 查看总结](./note_14_chapter_summary.md)
+[→ 查看总结](./note_14_summary.md)
 
 ### 练习题 💪
 本章所有练习代码  

@@ -9,7 +9,7 @@
 
 ### 13.1 拷贝、赋值与销毁 📋
 拷贝构造函数、拷贝赋值运算符、析构函数  
-[→ 查看笔记](./note_13_1_copy_assign_and_destroy.md)
+[→ 查看笔记](./note_13_1_copy_assign_destroy.md)
 
 ### 13.2 拷贝控制和资源管理 🔄
 行为像值的类、行为像指针的类  
@@ -33,7 +33,7 @@ StrVec 类的实现（类似 vector）
 
 ### 章节总结 📝
 第 13 章核心概念速查表  
-[→ 查看总结](./note_13_chapter_summary.md)
+[→ 查看总结](./note_13_summary.md)
 
 ### 练习题 💪
 本章所有练习代码  

@@ -17,7 +17,7 @@ new/delete、new[]/delete[]、空悬指针
 
 ### 12.3 使用标准库：文本查询程序 📖
 综合示例：使用智能指针实现文本查询  
-[→ 查看笔记](./note_12_3_using_the_library_a_text_query_program.md)
+[→ 查看笔记](./note_12_3_using_the_library_a_text-query_program.md)
 
 ### 章节总结 📝
 第 12 章核心概念速查表  
