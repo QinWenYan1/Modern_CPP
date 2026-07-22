@@ -335,25 +335,25 @@
 <a id="id10"></a>
 ## ✅ 知识点 10: 头文件搜索路径与可见性
 
-**优先使用目标级的 `target_include_directories`，用 PRIVATE/PUBLIC/INTERFACE 精确控制头文件路径的传播范围。**
+**优先使用目标级的 `target_include_directories`，用  `PRIVATE/PUBLIC/INTERFACE` 精确控制头文件路径的传播范围。**
 
-**两种方式对比：**
-- `include_directories(<路径>...)`：**全局生效**，当前目录所有目标都受影响——简单粗暴，新项目**不推荐**
-- `target_include_directories(<目标> <可见性> <路径>...)`：**只作用于指定目标**——精确可控，现代 CMake 推荐写法
+- **两种方式对比：**
+    - `include_directories(<路径>...)`：**全局生效**，当前目录所有目标都受影响——简单粗暴，新项目**不推荐**
+    - `target_include_directories(<目标> <可见性> <路径>...)`：**只作用于指定目标**——精确可控，现代 CMake 推荐写法
 
-**三种可见性(`scope`)：**
-- `PRIVATE`：只有当前目标自己能用
-- `PUBLIC`：当前目标和**链接它的目标**都能用（头文件路径会"传递"给消费者）
-- `INTERFACE`：只有链接它的目标能用，自己不用——典型场景是纯头文件库(`header-only library`)
+- **三种可见性(`scope`)：**
+    - `PRIVATE`：只有当前目标自己能用
+    - `PUBLIC`：当前目标和**链接它的目标**都能用（头文件路径会"传递"给消费者）
+    - `INTERFACE`：只有链接它的目标能用，自己不用——典型场景是纯头文件库(`header-only library`)
 
-**示例/实践**
-```cmake
-# MyLib 的头文件在 include/ 目录
-# PUBLIC：MyLib 自己编译需要，链接 MyLib 的 MyApp 也会自动获得该路径
-target_include_directories(MyLib PUBLIC ${PROJECT_SOURCE_DIR}/include)
-```
+- **示例/实践**
+    ```cmake
+    # MyLib 的头文件在 include/ 目录
+    # PUBLIC：MyLib 自己编译需要，链接 MyLib 的 MyApp 也会自动获得该路径
+    target_include_directories(MyLib PUBLIC ${PROJECT_SOURCE_DIR}/include)
+    ```
 
-**注意点**
+
 > ⚠️ **关键区分**：`include_directories` 是"大锅饭"，`target_include_directories` 是"按需分配"——后者才能让库的依赖关系清晰可维护。
 > 💡 **理解技巧**：PUBLIC 口诀"我用，你也用"——库把自己的 include 路径标记为 PUBLIC，使用者就不用再手动 `-I` 了。这正是对知识点 3、5 中手动头文件管理的自动化。
 > 🔄 **知识关联**：同样的 PRIVATE/PUBLIC/INTERFACE 也用于 `target_compile_options`、`target_link_libraries` 等其他 target_xxx 指令（见知识点 14）。
@@ -363,12 +363,13 @@ target_include_directories(MyLib PUBLIC ${PROJECT_SOURCE_DIR}/include)
 <a id="id11"></a>
 ## ✅ 知识点 11: `find_package` 引入第三方库
 
-**`find_package` 自动在系统中查找已安装的第三方库，配合导入目标一行链接，免去手动指定头文件路径和库路径。**
+**我们还有系统性引入第三方库的方法**
 
-```cmake
-find_package(Boost REQUIRED)                     # 查找 Boost，找不到就报错终止
-target_link_libraries(MyApp PRIVATE Boost::Boost) # 链接导入目标
-```
+- **`find_package` 自动在系统中查找已安装的第三方库，配合导入目标一行链接，免去手动指定头文件路径和库路径**
+    ```cmake
+    find_package(Boost REQUIRED)                     # 查找Boost找不到就报错终止
+    target_link_libraries(MyApp PRIVATE Boost::Boost) # 链接导入目标
+    ```
 
 - `REQUIRED`：找不到库时配置直接失败（不加则静默继续，需自行检查 `<库名>_FOUND`）
 - **现代写法**：链接 `Boost::Boost` 这类**导入目标(`imported target`)**——它自动携带头文件路径、库文件路径等全部信息
@@ -532,44 +533,5 @@ target_compile_features(MyLib PUBLIC cxx_std_17)               # 要求 C++17，
 7. **标准构建四步**：`mkdir build && cd build → cmake .. → cmake --build .`，坚持源外构建；`-D` 覆盖缓存变量，`-DCMAKE_BUILD_TYPE=` 选 Debug/Release。
 8. **现代 CMake 以目标为中心**：优先 `target_xxx` 系列指令 + PRIVATE/PUBLIC/INTERFACE 可见性；第三方库用 `find_package` + 导入目标（如 `Boost::Boost`）。
 
-## 📌 考试速记版
 
-**制作命令对比：**
-
-| | 静态库 | 动态库 |
-|---|--------|--------|
-| 制作 | `g++ -c -o libxxx.a src.cpp` | `g++ -fPIC -shared -o libxxx.so src.cpp` |
-| 使用(编译) | `g++ ... -lxxx -L/path` | 同左 |
-| 使用(运行) | 无需额外配置 | `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path` |
-
-**常见陷阱：**
-- `-lxxx` 中的 `xxx` 是去掉 `lib` 前缀和扩展名的库名，不是文件名
-- 动态库编译通过但运行时 `cannot open shared object file` → 忘配 `LD_LIBRARY_PATH`
-- `.so` 和 `.a` 同时存在时默认走动态库，注意确认实际生效的是哪个
-- macOS 上动态库是 `.dylib`，环境变量是 `DYLD_LIBRARY_PATH`
-
-**CMake 命令速查：**
-
-| 任务 | 命令/写法 |
-|------|----------|
-| 最小 CMakeLists.txt | `cmake_minimum_required(VERSION 3.10)` + `project(X CXX)` + `add_executable(app main.cpp)` |
-| 生成静态/动态库 | `add_library(lib STATIC/SHARED src.cpp)` |
-| 链接库 | `target_link_libraries(app PRIVATE lib)` |
-| 标准构建 | `mkdir build && cd build && cmake .. && cmake --build .` |
-| 构建类型 | `cmake .. -DCMAKE_BUILD_TYPE=Release` |
-| 覆盖缓存变量 | `cmake .. -DVAR=value` |
-| 指定生成器 | `cmake .. -G "Ninja"` |
-| 引第三方库 | `find_package(Boost REQUIRED)` + `target_link_libraries(app PRIVATE Boost::Boost)` |
-
-**CMake 常见陷阱：**
-- 改了 CMakeLists.txt 必须重新 `cmake ..`；只改 `.cpp` 源文件直接 `cmake --build .`
-- CACHE 变量改了默认值不生效 → 删 `CMakeCache.txt` 或清空 build 目录
-- `cmake ..` 的 `..` 指顶层 CMakeLists.txt 所在的源码目录，不是固定写法
-- 目标名**大小写敏感**：`MyLib` 和 `mylib` 是两个目标
-- `CMAKE_BUILD_TYPE` 只对单配置生成器（Makefiles/Ninja）有效；VS/Xcode 用 `--config Release`
-
-**记忆口诀**
-
-> 静态编译拷进去，独立快跑体积大；动态运行才加载，共享瘦身易升级。`-l -L` 都一样，动态多配一个 `LD_LIBRARY_PATH`。
->
-> CMake 不编译，只生菜谱给 make；`cmake ..` 配 `--build`，目标为王 `target_xxx`。
+---
