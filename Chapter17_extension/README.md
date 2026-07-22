@@ -18,34 +18,34 @@ Makefile 构建系统、GDB 调试器、静态库与动态库的创建与链接
 <details>
 <summary><b>🔧 Makefile 构建系统</b></summary>
 
-- [Makefile 基本语法](./note_17_1_engineering_foundations.md)
-- [规则（target, prerequisite, recipe）](./note_17_1_engineering_foundations.md)
-- [变量与自动变量](./note_17_1_engineering_foundations.md)
-- [模式规则与隐式规则](./note_17_1_engineering_foundations.md)
-- [多目录项目管理](./note_17_1_engineering_foundations.md)
+- [Makefile 基本语法](./note_17_1_dev_tools.md)
+- [规则（target, prerequisite, recipe）](./note_17_1_dev_tools.md)
+- [变量与自动变量](./note_17_1_dev_tools.md)
+- [模式规则与隐式规则](./note_17_1_dev_tools.md)
+- [多目录项目管理](./note_17_1_dev_tools.md)
 
 </details>
 
 <details>
 <summary><b>🐛 GDB 调试器</b></summary>
 
-- [编译时加 `-g` 选项](./note_17_1_engineering_foundations.md)
-- [断点（breakpoint）与观察点（watchpoint）](./note_17_1_engineering_foundations.md)
-- [单步执行（step, next, continue）](./note_17_1_engineering_foundations.md)
-- [调用栈（backtrace, frame）](./note_17_1_engineering_foundations.md)
-- [变量查看与内存检查](./note_17_1_engineering_foundations.md)
-- [core dump 分析](./note_17_1_engineering_foundations.md)
+- [编译时加 `-g` 选项](./note_17_1_dev_tools.md)
+- [断点（breakpoint）与观察点（watchpoint）](./note_17_1_dev_tools.md)
+- [单步执行（step, next, continue）](./note_17_1_dev_tools.md)
+- [调用栈（backtrace, frame）](./note_17_1_dev_tools.md)
+- [变量查看与内存检查](./note_17_1_dev_tools.md)
+- [core dump 分析](./note_17_1_dev_tools.md)
 
 </details>
 
 <details>
 <summary><b>📦 静态库与动态库</b></summary>
 
-- [静态库 `.a`（Linux）/ `.lib`（Windows）](./note_17_1_engineering_foundations.md)
-- [动态库 `.so`（Linux）/ `.dylib`（macOS）/ `.dll`（Windows）](./note_17_1_engineering_foundations.md)
-- [`ar` 与 `ranlib` 创建静态库](./note_17_1_engineering_foundations.md)
-- [编译时链接 vs 运行时加载（`dlopen`）](./note_17_1_engineering_foundations.md)
-- [头文件管理与 `-I`, `-L`, `-l` 选项](./note_17_1_engineering_foundations.md)
+- [静态库 `.a`（Linux）/ `.lib`（Windows）](./note_17_1_dev_tools.md)
+- [动态库 `.so`（Linux）/ `.dylib`（macOS）/ `.dll`（Windows）](./note_17_1_dev_tools.md)
+- [`ar` 与 `ranlib` 创建静态库](./note_17_1_dev_tools.md)
+- [编译时链接 vs 运行时加载（`dlopen`）](./note_17_1_dev_tools.md)
+- [头文件管理与 `-I`, `-L`, `-l` 选项](./note_17_1_dev_tools.md)
 
 </details>
 
