@@ -44,7 +44,7 @@ Key principles enforced by the template:
 
 Ordering and merging policy differs by content source:
 - **Textbook notes (Ch 1–16)**: strict original-order fidelity — no merging or reordering of textbook content.
-- **Extension notes (Ch 17+)**: user prefers **merged knowledge points** (e.g., 概念+特点 as one point, 制作+使用 as one point) and **pedagogical order** (concept before usage) over raw source order.
+- **Extension notes (Ch 17+)**: user prefers **merged knowledge points** (e.g., 概念+特点 as one point, 制作+使用 as one point), and the knowledge-point order must **match the original source material's order** — if a pedagogical reorder seems better, confirm with the user first.
 
 ## Available skills for content generation
 

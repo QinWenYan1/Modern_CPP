@@ -52,7 +52,7 @@
 - [第 16 章：模板与泛型编程](./Chapter16_templates_and_generic_programming/README.md) — 函数模板, 类模板, 模板实参推断, 可变参数模板, 模板特化
 
 #### 第四部分：C++ 拓展
-- [第 17 章：C++ 开发工具](./Chapter17_extension/README.md) — Makefile, GDB 调试, 静态库与动态库
+- [第 17 章：C++ 开发工具](./Chapter17_extension/README.md) — Makefile, CMake, GDB 调试, 静态库与动态库
 
 </details>
 

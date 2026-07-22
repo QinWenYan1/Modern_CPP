@@ -46,7 +46,9 @@
 - 静态库(`static library`)是多个目标文件(`.o`)的归档集合
     - 程序在编译时，链接器(`linker`)会把静态库中被用到的函数和类的二进制代码**完整复制**到最终的可执行文件中，这种机制称为静态链接(`static linking`)
     - 运行时不再依赖库文件，可执行文件是自包含的
-- **核心问题**：由于代码被复制进可执行文件，如果多个程序使用了同一静态库，每个程序的可执行文件中都存在一份独立的拷贝，造成磁盘空间浪费
+- **核心问题**：
+    1. 由于代码被复制进可执行文件，如果多个程序使用了同一静态库，每个程序的可执行文件中都存在**一份独立的拷贝，造成磁盘空间浪费**
+    2. **如果静态库更新了，所有使用它的应用程序都需要重新编译、发布给用户**（对于玩家来说，可能是一个很小的改动，却导致整个程序重新下载，全量更新）
     ![alt text](images/3.png)
 - **静态库的核心特点：**
     - **编译时完成链接**，代码已在可执行文件内部，启动和运行时加载速度快
@@ -115,6 +117,7 @@
 **动态库在运行时才被载入内存，多进程共享同一份代码，节省空间且升级简便。**
 
 - **动态库(`dynamic library` / `shared library`)与静态库相反**：
+    ![alt text](images/4.png)
     - 程序在编译时**不会**把库的二进制代码链接到目标程序中，仅在可执行文件中记录"需要哪些动态库的哪些符号"
     - 当程序启动（或运行到需要时），操作系统的动态链接器(`dynamic linker`，Linux 上为 `ld-linux.so`)才将 `.so` 文件载入内存并与程序绑定
 
@@ -530,6 +533,28 @@ target_compile_features(MyLib PUBLIC cxx_std_17)               # 要求 C++17，
 - `.so` 和 `.a` 同时存在时默认走动态库，注意确认实际生效的是哪个
 - macOS 上动态库是 `.dylib`，环境变量是 `DYLD_LIBRARY_PATH`
 
+**CMake 命令速查：**
+
+| 任务 | 命令/写法 |
+|------|----------|
+| 最小 CMakeLists.txt | `cmake_minimum_required(VERSION 3.10)` + `project(X CXX)` + `add_executable(app main.cpp)` |
+| 生成静态/动态库 | `add_library(lib STATIC/SHARED src.cpp)` |
+| 链接库 | `target_link_libraries(app PRIVATE lib)` |
+| 标准构建 | `mkdir build && cd build && cmake .. && cmake --build .` |
+| 构建类型 | `cmake .. -DCMAKE_BUILD_TYPE=Release` |
+| 覆盖缓存变量 | `cmake .. -DVAR=value` |
+| 指定生成器 | `cmake .. -G "Ninja"` |
+| 引第三方库 | `find_package(Boost REQUIRED)` + `target_link_libraries(app PRIVATE Boost::Boost)` |
+
+**CMake 常见陷阱：**
+- 改了 CMakeLists.txt 必须重新 `cmake ..`；只改 `.cpp` 源文件直接 `cmake --build .`
+- CACHE 变量改了默认值不生效 → 删 `CMakeCache.txt` 或清空 build 目录
+- `cmake ..` 的 `..` 指顶层 CMakeLists.txt 所在的源码目录，不是固定写法
+- 目标名**大小写敏感**：`MyLib` 和 `mylib` 是两个目标
+- `CMAKE_BUILD_TYPE` 只对单配置生成器（Makefiles/Ninja）有效；VS/Xcode 用 `--config Release`
+
 **记忆口诀**
 
 > 静态编译拷进去，独立快跑体积大；动态运行才加载，共享瘦身易升级。`-l -L` 都一样，动态多配一个 `LD_LIBRARY_PATH`。
+>
+> CMake 不编译，只生菜谱给 make；`cmake ..` 配 `--build`，目标为王 `target_xxx`。
