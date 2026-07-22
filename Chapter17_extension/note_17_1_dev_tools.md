@@ -430,50 +430,50 @@
 
 **一个包含自定义库的最小项目：三个源文件、一份 CMakeLists.txt，走完配置、编译、运行、清理全流程。**
 
-**项目结构：**
-```
-MyProject/
-├── CMakeLists.txt      # 构建规则、目标和依赖关系
-├── src/
-│   ├── main.cpp        # 入口，含 main()
-│   └── mylib.cpp       # 自定义库实现
-└── include/
-    └── mylib.h         # 库的头文件
-```
+- **项目结构：**
+    ```
+    MyProject/
+    ├── CMakeLists.txt      # 构建规则、目标和依赖关系
+    ├── src/
+    │   ├── main.cpp        # 入口，含 main()
+    │   └── mylib.cpp       # 自定义库实现
+    └── include/
+        └── mylib.h         # 库的头文件
+    ```
 
-**完整 CMakeLists.txt：**
-```cmake
-cmake_minimum_required(VERSION 3.10)              # 最低版本，必须最顶部
-project(MyProject VERSION 1.0)                    # 项目名 + 版本号
+- **完整 CMakeLists.txt：**
+    ```cmake
+    cmake_minimum_required(VERSION 3.10)              # 最低版本，必须最顶部
+    project(MyProject VERSION 1.0)                    # 项目名 + 版本号
 
-set(CMAKE_CXX_STANDARD 11)                        # 强制 C++11
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_STANDARD 11)                        # 强制 C++11
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(${PROJECT_SOURCE_DIR}/include) # 头文件搜索路径
+    include_directories(${PROJECT_SOURCE_DIR}/include) # 头文件搜索路径
 
-add_library(MyLib src/mylib.cpp)                  # 库目标（未指定类型，由 BUILD_SHARED_LIBS 决定）
-add_executable(MyExecutable src/main.cpp)         # 可执行文件目标
-target_link_libraries(MyExecutable MyLib)         # 链接库到可执行文件
-```
+    add_library(MyLib src/mylib.cpp)                  # 库目标（未指定类型，由 BUILD_SHARED_LIBS 决定）
+    add_executable(MyExecutable src/main.cpp)         # 可执行文件目标
+    target_link_libraries(MyExecutable MyLib)         # 链接库到可执行文件
+    ```
 
-**构建与运行：**
-```bash
-mkdir build && cd build   # 源外构建目录
-cmake ..                  # 配置：检测编译器，生成 Makefile
-cmake --build .           # 编译，产出 MyExecutable 和 libMyLib.a
-./MyExecutable            # 运行
-make clean                # 清理（或 rm -rf build）
-```
+- **构建与运行：**
+    ```bash
+    mkdir build && cd build   # 源外构建目录
+    cmake ..                  # 配置：检测编译器，生成 Makefile
+    cmake --build .           # 编译，产出 MyExecutable 和 libMyLib.a
+    ./MyExecutable            # 运行
+    make clean                # 清理（或 rm -rf build）
+    ```
 
-配置阶段的典型输出：
-```
--- The CXX compiler identification is GNU 11.4.0
--- Configuring done
--- Generating done
--- Build files have been written to: /path/to/MyProject/build
-```
+- 配置阶段的典型输出：
+    ```
+    -- The CXX compiler identification is GNU 11.4.0
+    -- Configuring done
+    -- Generating done
+    -- Build files have been written to: /path/to/MyProject/build
+    ```
 
-**注意点**
+
 > ⚠️ **关键区分**：`add_executable`/`add_library` 中的源文件路径是**相对于 CMakeLists.txt 所在目录**的；目标名**大小写敏感**（`MyLib` 和 `mylib` 是两个不同目标）。
 > ⚠️ **关键区分**：改了 CMakeLists.txt 要重新 `cmake ..`；只改 `.cpp` 源文件直接 `cmake --build .` 即可。
 > 💡 **理解技巧**：对照知识点 3——`add_library(MyLib ...)` + `target_link_libraries(...)` 两行，等价于手动 `g++ -c` 制作库 + `g++ -l -L` 链接的整个流程。这就是 CMake 的价值。
@@ -486,30 +486,30 @@ make clean                # 清理（或 rm -rf build）
 
 **不同生成器对构建类型的处理方式不同；以目标为单位用 `target_compile_options` 等命令精细控制编译行为。**
 
-**单配置 vs 多配置生成器：**
-- **单配置生成器**（`Unix Makefiles`、`Ninja`）：配置时确定构建类型 `cmake .. -DCMAKE_BUILD_TYPE=Release`，一份 build 目录对应一种类型
-- **多配置生成器**（`Visual Studio`、`Xcode`）：配置时不定类型，构建时才选 `cmake --build . --config Release`
+- **单配置 vs 多配置生成器：**
+    - **单配置生成器**（`Unix Makefiles`、`Ninja`）：配置时确定构建类型 `cmake .. -DCMAKE_BUILD_TYPE=Release`，一份 build 目录对应一种类型
+    - **多配置生成器**（`Visual Studio`、`Xcode`）：配置时不定类型，构建时才选 `cmake --build . --config Release`
 
-**多目标管理：** 一个项目可以定义多个目标，各自设置不同的编译宏和链接库：
-```cmake
-add_executable(MyApp src/main.cpp)
-add_executable(MyTool src/tool.cpp)
+- **多目标管理：** 一个项目可以定义多个目标，各自设置不同的编译宏和链接库：
+    ```cmake
+    add_executable(MyApp src/main.cpp)
+    add_executable(MyTool src/tool.cpp)
 
-target_link_libraries(MyApp PRIVATE MyLib)
-target_link_libraries(MyTool PRIVATE MyLib CLI11::CLI11)
-```
+    target_link_libraries(MyApp PRIVATE MyLib)
+    target_link_libraries(MyTool PRIVATE MyLib CLI11::CLI11)
+    ```
 
-**目标编译选项（现代推荐写法）：**
-```cmake
-target_compile_options(MyApp PRIVATE -Wall -Wextra -Wpedantic) # 编译警告选项
-target_compile_definitions(MyApp PRIVATE RUNOOB_VERSION="1.0") # 等价于 #define
-target_link_options(MyApp PRIVATE -L/usr/local/lib)            # 链接选项
-target_compile_features(MyLib PUBLIC cxx_std_17)               # 要求 C++17，PUBLIC 传播给使用者
-```
+- **目标编译选项（现代推荐写法）：**
+    ```cmake
+    target_compile_options(MyApp PRIVATE -Wall -Wextra -Wpedantic) # 编译警告选项
+    target_compile_definitions(MyApp PRIVATE RUNOOB_VERSION="1.0") # 等价于 #define
+    target_link_options(MyApp PRIVATE -L/usr/local/lib)            # 链接选项
+    target_compile_features(MyLib PUBLIC cxx_std_17)               # 要求 C++17，PUBLIC 传播给使用者
+    ```
 
-旧式的 `set_target_properties(MyApp PROPERTIES ...)` 也能设置 `COMPILE_OPTIONS`、`COMPILE_DEFINITIONS`、`LINK_FLAGS`、`OUTPUT_NAME` 等属性，但带可见性控制的 `target_xxx` 系列是现代 CMake 的推荐方式。
+    旧式的 `set_target_properties(MyApp PROPERTIES ...)` 也能设置 `COMPILE_OPTIONS`、`COMPILE_DEFINITIONS`、`LINK_FLAGS`、`OUTPUT_NAME` 等属性，但带可见性控制的 `target_xxx` 系列是现代 CMake 的推荐方式。
 
-**注意点**
+
 > ⚠️ **关键区分**：`CMAKE_BUILD_TYPE` 只对单配置生成器有效；多配置生成器要用 `--config`。
 > ⚠️ **关键区分**：交叉编译的工具链文件必须在**首次** `cmake` 配置时通过 `-DCMAKE_TOOLCHAIN_FILE=` 指定，切换工具链需清空构建目录（交叉编译细节入门阶段了解即可）。
 > 💡 **理解技巧**：凡是想给"某个目标"加选项，就找对应的 `target_xxx` 命令并想清楚用 PRIVATE 还是 PUBLIC——这套思维模式比背命令重要。
