@@ -57,7 +57,8 @@
 
 **制作静态库用 `g++ -c` 编译为 `.a`**
 
-- **文件；使用时通过 `-l库名 -L目录` 链接，库名省略 `lib` 前缀和 `.a` 后缀。**
+- **文件；使用时通过 `-l库名 -L目录` 链接，库名省略 `lib` 前缀和 `.a` 后缀**
+    ![alt text](images/2.png)
 
 - **制作静态库：**
     ```
@@ -82,17 +83,17 @@
         g++ 选项 源代码文件名清单 -l库名 -L 库文件所在的目录
         ```
 
-**示例/实践**
-```bash
-# 不规范做法
-[wucz@centos128 app]$ g++ -o demo01 demo01.cpp /home/wucz/tools/libpublic.a
-[wucz@centos128 app]$ ./demo01
+- **示例/实践**
+    ```bash
+    # 不规范做法
+    [wucz@centos128 app]$ g++ -o demo01 demo01.cpp /home/wucz/tools/libpublic.a
+    [wucz@centos128 app]$ ./demo01
 
-# 规范做法
-[wucz@centos128 app]$ g++ -o demo01 demo01.cpp -L/home/wucz/tools -lpublic
-```
+    # 规范做法
+    [wucz@centos128 app]$ g++ -o demo01 demo01.cpp -L/home/wucz/tools -lpublic
+    ```
 
-**注意点**
+
 > ⚠️ **关键区分**：`-lpublic` 中的 `public` 是去掉 `lib` 前缀和 `.a` 后缀的库名，不是完整文件名。`-L` 告诉编译器"去哪里找"，`-l` 告诉编译器"找哪个"。
 > 💡 **理解技巧**：可以把静态库理解为"一堆 `.o` 文件的 zip 包"——编译时解压，把用到的部分拷进可执行文件。
 > 🔄 **知识关联**：`-l` / `-L` 模式在动态库中完全一致，是 GCC/G++ 的统一链接接口。
