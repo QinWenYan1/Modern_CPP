@@ -11,8 +11,8 @@
 - [*知识点4: 动态库的概念与特点*](#id4)
 - [*知识点5: 动态库的制作与使用*](#id5)
 - [*知识点6: 静态库与动态库的对比与优先级*](#id6)
-- [*知识点7: CMake 是什么与为什么需要它*](#id7)
-- [*知识点8: CMakeLists.txt 基础语法与核心指令*](#id8)
+- [*知识点7: `CMake` 是什么与为什么需要它*](#id7)
+- [*知识点8: `CMakeLists.txt` 基础语法与核心指令*](#id8)
 - [*知识点9: 变量与缓存*](#id9)
 - [*知识点10: 头文件搜索路径与可见性*](#id10)
 - [*知识点11: find_package 引入第三方库*](#id11)
@@ -227,67 +227,70 @@
 
 **CMake 是跨平台的构建系统生成器——它自己不编译代码，而是生成 Makefile 等构建文件，再由对应工具完成编译。**
 
-前面的知识点里，制作库、链接库全靠手动敲 `g++` 命令——源文件少时尚可应付；一旦项目有几十上百个源文件、依赖多个库、还要在 Linux/macOS/Windows 上都能构建，手写命令和 Makefile 就会变得极其痛苦。CMake 正是为解决这一问题而生。
+- 前面的知识点里，制作库、链接库全靠手动敲 `g++` 命令——源文件少时尚可应付
+    - 一旦项目有几十上百个源文件、依赖多个库、还要在 Linux/macOS/Windows 上都能构建，手写命令和 Makefile 就会变得极其痛苦
+    - CMake 正是为解决这一问题而生
 
 - CMake 是一个**开源的跨平台自动化建构系统**，用来管理软件的构建过程，不依赖于某特定编译器，可支持多层目录、多个应用程序与多个函数库
 - **CMake 本身不是构建工具，而是生成构建系统的工具**：它读取 `CMakeLists.txt` 配置文件，自动生成当前平台的构建文件（Makefile、Ninja 构建文件、Visual Studio 工程文件等），真正的编译由 make、ninja、msbuild 这些工具执行
-- **CMakeLists.txt**：CMake 的配置文件，用于定义项目的构建规则、依赖关系、编译选项等；每个 CMake 项目通常包含一个或多个
-- **构建目录**：CMake 鼓励使用独立的构建目录（源外构建 `out-of-source build`），让生成的文件与源代码分开存放，保持源码树整洁
+    - **CMakeLists.txt**：CMake 的配置文件，用于定义项目的构建规则、依赖关系、编译选项等；每个 CMake 项目通常包含一个或多个
+    - **构建目录**：CMake 鼓励使用独立的构建目录（源外构建 `out-of-source build`），让生成的文件与源代码分开存放，保持源码树整洁
 
-**CMake 的优势：**
-- **跨平台支持**：同一份构建配置可以在不同操作系统和编译器环境中使用
-- **简化配置**：通过 CMakeLists.txt 定义项目结构、依赖项、编译选项，无需手动编写复杂的构建脚本
-- **自动化构建**：自动检测系统上的库和工具，减少手动配置工作量
-- **灵活性**：支持多种构建类型（Debug、Release），允许自定义构建选项和模块
+- **CMake 的优势：**
+    - **跨平台支持**：同一份构建配置可以在不同操作系统和编译器环境中使用
+    - **简化配置**：通过 CMakeLists.txt 定义项目结构、依赖项、编译选项，无需手动编写复杂的构建脚本
+    - **自动化构建**：自动检测系统上的库和工具，减少手动配置工作量
+    - **灵活性**：支持多种构建类型（Debug、Release），允许自定义构建选项和模块
 
-**基本工作流程：**
-1. **编写 CMakeLists.txt**：定义项目的构建规则和依赖关系
-2. **生成构建文件**：用 CMake 生成适合当前平台的构建系统文件（如 Makefile）
-3. **执行构建**：用生成的构建文件（make、ninja、msbuild）编译项目
+- **基本工作流程：**
+    1. **编写 CMakeLists.txt**：定义项目的构建规则和依赖关系
+    2. **生成构建文件**：用 CMake 生成适合当前平台的构建系统文件（如 Makefile）
+    3. **执行构建**：用生成的构建文件（make、ninja、msbuild）编译项目
 
-**注意点**
-> ⚠️ **关键区分**：CMake ≠ make。CMake 是"写菜谱的"，make 是"炒菜的"——CMake 生成 Makefile，make 按 Makefile 执行编译。
-> 💡 **理解技巧**：CMake 的价值在于"一份配置，处处构建"——同一份 CMakeLists.txt 在 Linux 生成 Makefile，在 Windows 生成 Visual Studio 工程。
-> 🔄 **知识关联**：CMake 的 `add_library` 一行就能完成知识点 3、5 中手动制作静态库/动态库的工作（见知识点 8、13）。
+
+> ⚠️ **关键区分**：CMake ≠ make。CMake 是"写菜谱的"，make 是"炒菜的"——CMake 生成 Makefile，make 按 Makefile 执行编译
+> 💡 **理解技巧**：CMake 的价值在于"一份配置，处处构建"——同一份 CMakeLists.txt 在 Linux 生成 Makefile，在 Windows 生成 Visual Studio 工程
+> 🔄 **知识关联**：CMake 的 `add_library` 一行就能完成知识点 3、5 中手动制作静态库/动态库的工作（见知识点 8、13）
 > 📋 **术语提醒**：构建系统生成器(`build system generator`)、源外构建(`out-of-source build`)
 
 ---
 
 <a id="id8"></a>
-## ✅ 知识点 8: CMakeLists.txt 基础语法与核心指令
+## ✅ 知识点 8: `CMakeLists.txt` 基础语法与核心指令
 
-**CMakeLists.txt 的语法统一为 `命令名(参数列表)`；最常用的指令只有五个：版本声明、项目声明、生成可执行文件、生成库、链接库。**
+**CMakeLists.txt 的语法统一为 `命令名(参数列表)`**
 
-CMakeLists.txt 是 CMake 的核心配置文件，每个 CMake 项目至少需要一个。基本语法格式为 `命令名(参数列表)`，命令不区分大小写，习惯上全小写。
+- 最常用的指令只有五个：**版本声明、项目声明、生成可执行文件、生成库、链接库**：
+    - `CMakeLists.txt` 是 `CMake` 的核心配置文件，每个 CMake 项目至少需要一个
+    - 基本语法格式为 `命令名(参数列表)`，命令不区分大小写，习惯上全小写
 
-**核心指令：**
+- **核心指令：**
 
-- `cmake_minimum_required(VERSION <版本号>)`：**必须放在文件最顶部**，声明所需的最低 CMake 版本
-- `project(<项目名> [<语言>...])`：定义项目名称和使用的语言（如 `CXX` 表示 C++）
-- `add_executable(<目标名> <源文件>...)`：把源文件编译为可执行文件，目标名就是输出的可执行文件名
-- `add_library(<目标名> [STATIC | SHARED | MODULE] <源文件>...)`：把源文件编译为库——`STATIC` 生成静态库(`.a`/`.lib`)，`SHARED` 生成动态库(`.so`/`.dll`)；不写类型时由 `BUILD_SHARED_LIBS` 变量决定
-- `target_link_libraries(<目标> <库>...)`：把库链接到目标上
+    - `cmake_minimum_required(VERSION <版本号>)`：**必须放在文件最顶部**，声明所需的最低 CMake 版本
+    - `project(<项目名> [<语言>...])`：定义项目名称和使用的语言（如 `CXX` 表示 C++）
+    - `add_executable(<目标名> <源文件>...)`：把源文件编译为可执行文件，目标名就是输出的可执行文件名
+    - `add_library(<目标名> [STATIC | SHARED | MODULE] <源文件>...)`：把源文件编译为库——`STATIC` 生成静态库(`.a`/`.lib`)，`SHARED` 生成动态库(`.so`/`.dll`)；不写类型时由 `BUILD_SHARED_LIBS` 变量决定
+    - `target_link_libraries(<目标> <库>...)`：把库链接到目标上
 
-**指定 C++ 标准：**
-```cmake
-set(CMAKE_CXX_STANDARD 11)          # 使用 C++11
-set(CMAKE_CXX_STANDARD_REQUIRED ON) # 强制要求，不达标就报错而非降级
-```
+- **指定 C++ 标准：**
+    ```cmake
+    set(CMAKE_CXX_STANDARD 11)          # 使用 C++11
+    set(CMAKE_CXX_STANDARD_REQUIRED ON) # 强制要求，不达标就报错而非降级
+    ```
 
-**示例/实践**
-```cmake
-cmake_minimum_required(VERSION 3.10)        # 最低版本要求，放最顶部
-project(MyProject CXX)                       # 项目名 + 语言为 C++
+- **示例/实践**
+    ```cmake
+    cmake_minimum_required(VERSION 3.10)        # 最低版本要求，放最顶部
+    project(MyProject CXX)                       # 项目名 + 语言为 C++
 
-set(CMAKE_CXX_STANDARD 17)                   # 使用 C++17 标准
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_STANDARD 17)                   # 使用 C++17 标准
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(MyLib STATIC src/mylib.cpp)      # 编译静态库 libMyLib.a
-add_executable(MyApp src/main.cpp)           # 编译可执行文件 MyApp
-target_link_libraries(MyApp PRIVATE MyLib)   # 把 MyLib 链接到 MyApp
-```
+    add_library(MyLib STATIC src/mylib.cpp)      # 编译静态库 libMyLib.a
+    add_executable(MyApp src/main.cpp)           # 编译可执行文件 MyApp
+    target_link_libraries(MyApp PRIVATE MyLib)   # 把 MyLib 链接到 MyApp
+    ```
 
-**注意点**
 > ⚠️ **关键区分**：`add_library` 不显式给类型时，生成的库类型由 `BUILD_SHARED_LIBS` 决定——同一份 CMakeLists 可能产出静态库也可能产出动态库，要明确就写 `STATIC` 或 `SHARED`。
 > 💡 **理解技巧**：每个 `add_executable` 和 `add_library` 都定义了一个**构建目标(`target`)**，后续所有 `target_xxx` 指令都围绕目标展开——这是现代 CMake 的核心思想。
 > 🔄 **知识关联**：`add_library(MyLib STATIC ...)` 等价于知识点 3 的 `g++ -c` 打包；`target_link_libraries` 等价于 `-l -L` 链接，但无需手写路径。
