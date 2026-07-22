@@ -386,45 +386,39 @@
 <a id="id12"></a>
 ## ✅ 知识点 12: 构建流程与构建类型
 
-**标准构建只需四条命令：建目录、配置、编译、运行；`cmake --build .` 是跨平台统一的编译命令。**
+**标准构建的关键流程**
 
-**标准构建流程：**
-```bash
-mkdir build          # 1. 创建独立构建目录（源外构建）
-cd build
-cmake ..             # 2. 配置：读 CMakeLists.txt，生成 Makefile 等构建文件
-cmake --build .      # 3. 编译：调用底层构建工具（跨生成器统一命令）
-./MyApp              # 4. 运行
-```
+- **标准构建流程：**
+    ![alt text](images/6.png)
 
-清理与重新配置：
-```bash
-cmake --build . --target clean   # 清理构建产物
-cmake .. && cmake --build .      # 修改 CMakeLists.txt 后：重新配置并编译
-rm -rf build/*                   # 或者粗暴地清空构建目录
-```
+- 清理与重新配置：
+    ```bash
+    cmake --build . --target clean   # 清理构建产物
+    cmake .. && cmake --build .      # 修改 CMakeLists.txt 后：重新配置并编译
+    rm -rf build/*                   # 或者粗暴地清空构建目录
+    ```
 
-**常用配置选项：**
-```bash
-cmake -G "Ninja" ..                  # 指定生成器（默认 Unix Makefiles）
-cmake -DCMAKE_BUILD_TYPE=Release ..  # 指定构建类型
-```
+- **常用配置选项：**
+    ```bash
+    cmake -G "Ninja" ..                  # 指定生成器（默认 Unix Makefiles）
+    cmake -DCMAKE_BUILD_TYPE=Release ..  # 指定构建类型
+    ```
 
-**构建类型(`build type`)：**
-- `Debug`：关闭优化、带调试符号——开发调试用
-- `Release`：开启优化——发布用
-- `RelWithDebInfo`：优化 + 保留调试符号
-- `MinSizeRel`：最小体积优化
+- **构建类型(`build type`)：**
+    - `Debug`：关闭优化、带调试符号——开发调试用
+    - `Release`：开启优化——发布用
+    - `RelWithDebInfo`：优化 + 保留调试符号
+    - `MinSizeRel`：最小体积优化
 
-**生成器与产物：** 不同生成器(`generator`)产出不同的构建文件——`Unix Makefiles` 产出 Makefile、`Ninja` 产出 build.ninja、`Visual Studio` 产出 `.sln`。**CMake 负责配置，底层构建系统负责真正的编译。**
+- **生成器与产物：** 不同生成器(`generator`)产出不同的构建文件——`Unix Makefiles` 产出 Makefile、`Ninja` 产出 build.ninja、`Visual Studio` 产出 `.sln`。**CMake 负责配置，底层构建系统负责真正的编译。**
 
-底层工具的等价命令（了解即可）：
-```bash
-make -j$(nproc)     # make 并行编译
-ninja               # ninja 编译
-```
+- 底层工具的等价命令（了解即可）：
+    ```bash
+    make -j$(nproc)     # make 并行编译
+    ninja               # ninja 编译
+    ```
 
-**注意点**
+
 > ⚠️ **关键区分**：始终使用源外构建——所有生成物放进 `build/` 目录，源码树保持干净；建议把 `build/` 加入 `.gitignore`。
 > 💡 **理解技巧**：优先用 `cmake --build .` 而不是直接敲 `make`——它屏蔽了底层工具差异，同一命令在 Makefile、Ninja、VS 工程上都适用。
 > 📋 **术语提醒**：`cmake ..` 里的 `..` 是指向**包含顶层 CMakeLists.txt 的源码目录**，不是固定写法。
