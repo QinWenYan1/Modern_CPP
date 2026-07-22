@@ -303,7 +303,7 @@
 
 - **`set()` 定义变量、`${}` 引用变量；CACHE 变量会持久化到 `CMakeCache.txt`，可在命令行用 `-D` 覆盖。**
 
-- **普通变量：**
+- **普通变量：** 普通变量在每次 CMake 运行时重新计算，不会持久化
     ```cmake
     set(SRC_LIST main.cpp foo.cpp)    # 定义变量
     add_executable(MyApp ${SRC_LIST}) # 用 ${} 引用
