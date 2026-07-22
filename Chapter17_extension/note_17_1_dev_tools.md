@@ -436,7 +436,27 @@
 
 **一个包含自定义库的最小项目：三个源文件、一份 CMakeLists.txt，走完配置、编译、运行、清理全流程。**
 
-- **项目结构：**
+- **典型大型项目结构布局：**
+    ```
+    project/
+    ├── src/           # 源代码（.cc）
+    ├── include/       # 对外公开的头文件（给别的项目用的 API）
+    ├── bin/           # 编译产物：可执行文件
+    ├── lib/           # 编译产物：库文件（.a 静态库 / .so 动态库）
+    ├── build/         # 构建中间产物（一次性，可删）
+    ├── example/       # 示例代码
+    ├── test/          # 测试代码
+    ├── third_party/   # 第三方依赖（muduo、protobuf 之类）
+    ├── conf/          # 配置文件（你的 test.conf 就属于这类）
+    ├── scripts/       # 工具脚本（如 autobuild.sh）
+    ├── cmake/         # CMake 辅助模块（Find 脚本等）
+    ├── docs/          # 文档
+    ├── CMakeLists.txt
+    └── README.md
+    ```
+
+- **实例：**
+    
     ```
     MyProject/
     ├── CMakeLists.txt      # 构建规则、目标和依赖关系
