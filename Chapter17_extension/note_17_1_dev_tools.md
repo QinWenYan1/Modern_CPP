@@ -15,7 +15,7 @@
 - [*知识点8: `CMakeLists.txt` 基础语法与核心指令*](#id8)
 - [*知识点9: 变量与缓存*](#id9)
 - [*知识点10: 头文件搜索路径与可见性*](#id10)
-- [*知识点11: find_package 引入第三方库*](#id11)
+- [*知识点11: `find_package`引入第三方库*](#id11)
 - [*知识点12: 构建流程与构建类型*](#id12)
 - [*知识点13: 完整构建实例*](#id13)
 - [*知识点14: 进阶——构建配置与目标属性*](#id14)
@@ -268,9 +268,13 @@
 
     - `cmake_minimum_required(VERSION <版本号>)`：**必须放在文件最顶部**，声明所需的最低 CMake 版本
     - `project(<项目名> [<语言>...])`：定义项目名称和使用的语言（如 `CXX` 表示 C++）
-    - `add_executable(<目标名> <源文件>...)`：把源文件编译为可执行文件，目标名就是输出的可执行文件名
+    - `add_executable(<目标名> <源文件>...)`：把源文件编译为可执行文件，目标名就是输出的可执行文件名，当有多个源文件时，你可以：
+        1. 设置源文件列表：`set(SRC_LIST muduo_server.cpp)`
+        2. 编译：`add_executable(server ${SRC_LIST})`
+        3. 如果源文件过多可以使用 **`aux_source_directory(. SRC_LIST)` 表示将制定路径下的所有文件放入`SRC_LIST`里面**
     - `add_library(<目标名> [STATIC | SHARED | MODULE] <源文件>...)`：把源文件编译为库——`STATIC` 生成静态库(`.a`/`.lib`)，`SHARED` 生成动态库(`.so`/`.dll`)；不写类型时由 `BUILD_SHARED_LIBS` 变量决定
     - `target_link_libraries(<目标> <库>...)`：把库链接到目标上
+    - `set(<变量名1> ${<变量名2>} <编译选项>)`：配置编译选项，通过`$`访问变量2，将编译选项添加到变量1中
 
 - **指定 C++ 标准：**
     ```cmake
@@ -285,6 +289,7 @@
 
     set(CMAKE_CXX_STANDARD 17)                   # 使用 C++17 标准
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_FLAGE ${CMAKE_CXX_FLAGE} -g) #添加编译选项-g让可执行文件可调试
 
     add_library(MyLib STATIC src/mylib.cpp)      # 编译静态库 libMyLib.a
     add_executable(MyApp src/main.cpp)           # 编译可执行文件 MyApp
