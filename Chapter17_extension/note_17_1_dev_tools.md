@@ -375,6 +375,7 @@
     ```cmake
     find_package(Boost REQUIRED)                     # 查找Boost找不到就报错终止
     target_link_libraries(MyApp PRIVATE Boost::Boost) # 链接导入目标
+    target_link_libraries(server muduo_net muduo_base pthread) #不同的链接方式
     ```
 
 - `REQUIRED`：找不到库时配置直接失败（不加则静默继续，需自行检查 `<库名>_FOUND`）
