@@ -1,6 +1,6 @@
 # 📘 [第 17 章] 开发工具 (Dev tools)
 
-> 来源说明：C++ 开发工具链 第 17.1 节 | 本节涵盖：静态库(`.a`)与动态库(`.so`/`.dylib`)的概念、特点、制作、使用及选型原则
+> 来源说明：C++ 开发工具链 第 17.1 节 | 本节涵盖：静态库(`.a`)与动态库(`.so`/`.dylib`)的概念、特点、制作、使用及选型原则；CMake 构建系统生成器的核心用法
 
 ---
 
@@ -11,6 +11,14 @@
 - [*知识点4: 动态库的概念与特点*](#id4)
 - [*知识点5: 动态库的制作与使用*](#id5)
 - [*知识点6: 静态库与动态库的对比与优先级*](#id6)
+- [*知识点7: CMake 是什么与为什么需要它*](#id7)
+- [*知识点8: CMakeLists.txt 基础语法与核心指令*](#id8)
+- [*知识点9: 变量与缓存*](#id9)
+- [*知识点10: 头文件搜索路径与可见性*](#id10)
+- [*知识点11: find_package 引入第三方库*](#id11)
+- [*知识点12: 构建流程与构建类型*](#id12)
+- [*知识点13: 完整构建实例*](#id13)
+- [*知识点14: 进阶——构建配置与目标属性*](#id14)
 
 ---
 <a id="id1"></a>
@@ -39,7 +47,7 @@
     - 程序在编译时，链接器(`linker`)会把静态库中被用到的函数和类的二进制代码**完整复制**到最终的可执行文件中，这种机制称为静态链接(`static linking`)
     - 运行时不再依赖库文件，可执行文件是自包含的
 - **核心问题**：由于代码被复制进可执行文件，如果多个程序使用了同一静态库，每个程序的可执行文件中都存在一份独立的拷贝，造成磁盘空间浪费
-
+    ![alt text](images/3.png)
 - **静态库的核心特点：**
     - **编译时完成链接**，代码已在可执行文件内部，启动和运行时加载速度快
     - **可执行文件体积大**，每个链接了静态库的程序都携带一份独立的库代码
@@ -68,7 +76,7 @@
 - **示例/实践**
     ```bash
     # 将 public.cpp 编译为静态库 libpublic.a
-    [wucz@centos128 tools]$ g++ -c -o libpublic.a public.cpp
+    $ g++ -c -o libpublic.a public.cpp
     ```
 
 - **使用静态库：**
@@ -82,15 +90,16 @@
         ```
         g++ 选项 源代码文件名清单 -l库名 -L 库文件所在的目录
         ```
+    - **Linux静态库命名规范，必须是 `lib[your_library_name].a`** ：lib为前缀，中间是静态库名，扩展名为.a
 
 - **示例/实践**
     ```bash
     # 不规范做法
-    [wucz@centos128 app]$ g++ -o demo01 demo01.cpp /home/wucz/tools/libpublic.a
-    [wucz@centos128 app]$ ./demo01
+    $ g++ -o demo01 demo01.cpp /home/wucz/tools/libpublic.a
+    $ ./demo01
 
     # 规范做法
-    [wucz@centos128 app]$ g++ -o demo01 demo01.cpp -L/home/wucz/tools -lpublic
+    $ g++ -o demo01 demo01.cpp -L/home/wucz/tools -lpublic
     ```
 
 
@@ -160,15 +169,15 @@
 - **示例/实践**
     ```bash
     # 编译
-    [wucz@centos128 app]$ g++ -o demo01 demo01.cpp -L/home/wucz/tools -lpublic
+    $ g++ -o demo01 demo01.cpp -L/home/wucz/tools -lpublic
 
     # 直接运行——报错
-    [wucz@centos128 app]$ ./demo01
+    $ ./demo01
     ./demo01: error while loading shared libraries: libpublic.so: cannot open shared object file: No such file or directory
 
     # 配置搜索路径后——正常运行
-    [wucz@centos128 app]$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/wucz/tools
-    [wucz@centos128 app]$ ./demo01
+    $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/wucz/tools
+    $ ./demo01
     ```
 
 > ⚠️ **关键区分**：动态库的链接分为**编译时**（`-l` + `-L`）和**运行时**（`LD_LIBRARY_PATH` 或系统默认路径）两个阶段，两者缺一不可。编译时 `-L` 告诉链接器库的位置，运行时 `LD_LIBRARY_PATH` 告诉动态链接器的位置——两条路径是独立的。
@@ -203,6 +212,297 @@
 
 ---
 
+<a id="id7"></a>
+## ✅ 知识点 7: CMake 是什么与为什么需要它
+
+**CMake 是跨平台的构建系统生成器——它自己不编译代码，而是生成 Makefile 等构建文件，再由对应工具完成编译。**
+
+前面的知识点里，制作库、链接库全靠手动敲 `g++` 命令——源文件少时尚可应付；一旦项目有几十上百个源文件、依赖多个库、还要在 Linux/macOS/Windows 上都能构建，手写命令和 Makefile 就会变得极其痛苦。CMake 正是为解决这一问题而生。
+
+- CMake 是一个**开源的跨平台自动化建构系统**，用来管理软件的构建过程，不依赖于某特定编译器，可支持多层目录、多个应用程序与多个函数库
+- **CMake 本身不是构建工具，而是生成构建系统的工具**：它读取 `CMakeLists.txt` 配置文件，自动生成当前平台的构建文件（Makefile、Ninja 构建文件、Visual Studio 工程文件等），真正的编译由 make、ninja、msbuild 这些工具执行
+- **CMakeLists.txt**：CMake 的配置文件，用于定义项目的构建规则、依赖关系、编译选项等；每个 CMake 项目通常包含一个或多个
+- **构建目录**：CMake 鼓励使用独立的构建目录（源外构建 `out-of-source build`），让生成的文件与源代码分开存放，保持源码树整洁
+
+**CMake 的优势：**
+- **跨平台支持**：同一份构建配置可以在不同操作系统和编译器环境中使用
+- **简化配置**：通过 CMakeLists.txt 定义项目结构、依赖项、编译选项，无需手动编写复杂的构建脚本
+- **自动化构建**：自动检测系统上的库和工具，减少手动配置工作量
+- **灵活性**：支持多种构建类型（Debug、Release），允许自定义构建选项和模块
+
+**基本工作流程：**
+1. **编写 CMakeLists.txt**：定义项目的构建规则和依赖关系
+2. **生成构建文件**：用 CMake 生成适合当前平台的构建系统文件（如 Makefile）
+3. **执行构建**：用生成的构建文件（make、ninja、msbuild）编译项目
+
+**注意点**
+> ⚠️ **关键区分**：CMake ≠ make。CMake 是"写菜谱的"，make 是"炒菜的"——CMake 生成 Makefile，make 按 Makefile 执行编译。
+> 💡 **理解技巧**：CMake 的价值在于"一份配置，处处构建"——同一份 CMakeLists.txt 在 Linux 生成 Makefile，在 Windows 生成 Visual Studio 工程。
+> 🔄 **知识关联**：CMake 的 `add_library` 一行就能完成知识点 3、5 中手动制作静态库/动态库的工作（见知识点 8、13）。
+> 📋 **术语提醒**：构建系统生成器(`build system generator`)、源外构建(`out-of-source build`)
+
+---
+
+<a id="id8"></a>
+## ✅ 知识点 8: CMakeLists.txt 基础语法与核心指令
+
+**CMakeLists.txt 的语法统一为 `命令名(参数列表)`；最常用的指令只有五个：版本声明、项目声明、生成可执行文件、生成库、链接库。**
+
+CMakeLists.txt 是 CMake 的核心配置文件，每个 CMake 项目至少需要一个。基本语法格式为 `命令名(参数列表)`，命令不区分大小写，习惯上全小写。
+
+**核心指令：**
+
+- `cmake_minimum_required(VERSION <版本号>)`：**必须放在文件最顶部**，声明所需的最低 CMake 版本
+- `project(<项目名> [<语言>...])`：定义项目名称和使用的语言（如 `CXX` 表示 C++）
+- `add_executable(<目标名> <源文件>...)`：把源文件编译为可执行文件，目标名就是输出的可执行文件名
+- `add_library(<目标名> [STATIC | SHARED | MODULE] <源文件>...)`：把源文件编译为库——`STATIC` 生成静态库(`.a`/`.lib`)，`SHARED` 生成动态库(`.so`/`.dll`)；不写类型时由 `BUILD_SHARED_LIBS` 变量决定
+- `target_link_libraries(<目标> <库>...)`：把库链接到目标上
+
+**指定 C++ 标准：**
+```cmake
+set(CMAKE_CXX_STANDARD 11)          # 使用 C++11
+set(CMAKE_CXX_STANDARD_REQUIRED ON) # 强制要求，不达标就报错而非降级
+```
+
+**示例/实践**
+```cmake
+cmake_minimum_required(VERSION 3.10)        # 最低版本要求，放最顶部
+project(MyProject CXX)                       # 项目名 + 语言为 C++
+
+set(CMAKE_CXX_STANDARD 17)                   # 使用 C++17 标准
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+add_library(MyLib STATIC src/mylib.cpp)      # 编译静态库 libMyLib.a
+add_executable(MyApp src/main.cpp)           # 编译可执行文件 MyApp
+target_link_libraries(MyApp PRIVATE MyLib)   # 把 MyLib 链接到 MyApp
+```
+
+**注意点**
+> ⚠️ **关键区分**：`add_library` 不显式给类型时，生成的库类型由 `BUILD_SHARED_LIBS` 决定——同一份 CMakeLists 可能产出静态库也可能产出动态库，要明确就写 `STATIC` 或 `SHARED`。
+> 💡 **理解技巧**：每个 `add_executable` 和 `add_library` 都定义了一个**构建目标(`target`)**，后续所有 `target_xxx` 指令都围绕目标展开——这是现代 CMake 的核心思想。
+> 🔄 **知识关联**：`add_library(MyLib STATIC ...)` 等价于知识点 3 的 `g++ -c` 打包；`target_link_libraries` 等价于 `-l -L` 链接，但无需手写路径。
+> 📋 **术语提醒**：`install()` 指令可定义安装规则（把产物复制到系统目录），入门阶段了解即可。
+
+---
+
+<a id="id9"></a>
+## ✅ 知识点 9: 变量与缓存
+
+**`set()` 定义变量、`${}` 引用变量；CACHE 变量会持久化到 CMakeCache.txt，可在命令行用 `-D` 覆盖。**
+
+**普通变量：**
+```cmake
+set(SRC_LIST main.cpp foo.cpp)    # 定义变量
+add_executable(MyApp ${SRC_LIST}) # 用 ${} 引用
+```
+作用域为当前目录及其子目录。
+
+**缓存变量(`cache variable`)：**
+```cmake
+set(ENABLE_LOGGING ON CACHE BOOL "是否启用日志")
+```
+- 持久化存储在构建目录的 `CMakeCache.txt` 中，多次配置之间保持不变
+- 类型有 `STRING`、`BOOL`、`PATH`、`FILEPATH`
+- **可在命令行用 `-D` 覆盖，无需修改 CMakeLists.txt**：
+```bash
+cmake .. -DENABLE_LOGGING=OFF
+```
+
+**注意点**
+> ⚠️ **关键区分**：CACHE 变量的默认值**不会自动更新**——如果 CMakeLists.txt 里改了默认值，已存在的 CMakeCache.txt 仍保留旧值。要么删 `CMakeCache.txt`，要么整个删掉 build 目录重新配置。
+> 💡 **理解技巧**：CACHE 变量是"用户可调的旋钮"——项目作者在 CMakeLists 里给默认值，使用者在命令行用 `-D` 覆盖，两边都不用改对方的文件。
+
+---
+
+<a id="id10"></a>
+## ✅ 知识点 10: 头文件搜索路径与可见性
+
+**优先使用目标级的 `target_include_directories`，用 PRIVATE/PUBLIC/INTERFACE 精确控制头文件路径的传播范围。**
+
+**两种方式对比：**
+- `include_directories(<路径>...)`：**全局生效**，当前目录所有目标都受影响——简单粗暴，新项目**不推荐**
+- `target_include_directories(<目标> <可见性> <路径>...)`：**只作用于指定目标**——精确可控，现代 CMake 推荐写法
+
+**三种可见性(`scope`)：**
+- `PRIVATE`：只有当前目标自己能用
+- `PUBLIC`：当前目标和**链接它的目标**都能用（头文件路径会"传递"给消费者）
+- `INTERFACE`：只有链接它的目标能用，自己不用——典型场景是纯头文件库(`header-only library`)
+
+**示例/实践**
+```cmake
+# MyLib 的头文件在 include/ 目录
+# PUBLIC：MyLib 自己编译需要，链接 MyLib 的 MyApp 也会自动获得该路径
+target_include_directories(MyLib PUBLIC ${PROJECT_SOURCE_DIR}/include)
+```
+
+**注意点**
+> ⚠️ **关键区分**：`include_directories` 是"大锅饭"，`target_include_directories` 是"按需分配"——后者才能让库的依赖关系清晰可维护。
+> 💡 **理解技巧**：PUBLIC 口诀"我用，你也用"——库把自己的 include 路径标记为 PUBLIC，使用者就不用再手动 `-I` 了。这正是对知识点 3、5 中手动头文件管理的自动化。
+> 🔄 **知识关联**：同样的 PRIVATE/PUBLIC/INTERFACE 也用于 `target_compile_options`、`target_link_libraries` 等其他 target_xxx 指令（见知识点 14）。
+
+---
+
+<a id="id11"></a>
+## ✅ 知识点 11: find_package 引入第三方库
+
+**`find_package` 自动在系统中查找已安装的第三方库，配合导入目标一行链接，免去手动指定头文件路径和库路径。**
+
+```cmake
+find_package(Boost REQUIRED)                     # 查找 Boost，找不到就报错终止
+target_link_libraries(MyApp PRIVATE Boost::Boost) # 链接导入目标
+```
+
+- `REQUIRED`：找不到库时配置直接失败（不加则静默继续，需自行检查 `<库名>_FOUND`）
+- **现代写法**：链接 `Boost::Boost` 这类**导入目标(`imported target`)**——它自动携带头文件路径、库文件路径等全部信息
+- **旧式写法**（不推荐）：手动使用 `${Boost_INCLUDE_DIRS}`、`${Boost_LIBRARIES}` 等变量拼装
+
+**注意点**
+> ⚠️ **关键区分**：优先链接 `Boost::filesystem` 这样的导入目标，而不是旧式变量——目标会自动传播头文件路径，变量写法要手动 `include_directories`。
+> 💡 **理解技巧**：`find_package` + 导入目标 = 知识点 3、5 中 `-I`、`-L`、`-l` 三个手动步骤的全自动化。
+> 🔄 **知识关联**：指定组件查找（`find_package(Boost REQUIRED COMPONENTS filesystem system)`）和非标准路径搜索（`-DBOOST_ROOT=/path`）属于进阶用法，需要时查阅即可。
+
+---
+
+<a id="id12"></a>
+## ✅ 知识点 12: 构建流程与构建类型
+
+**标准构建只需四条命令：建目录、配置、编译、运行；`cmake --build .` 是跨平台统一的编译命令。**
+
+**标准构建流程：**
+```bash
+mkdir build          # 1. 创建独立构建目录（源外构建）
+cd build
+cmake ..             # 2. 配置：读 CMakeLists.txt，生成 Makefile 等构建文件
+cmake --build .      # 3. 编译：调用底层构建工具（跨生成器统一命令）
+./MyApp              # 4. 运行
+```
+
+清理与重新配置：
+```bash
+cmake --build . --target clean   # 清理构建产物
+cmake .. && cmake --build .      # 修改 CMakeLists.txt 后：重新配置并编译
+rm -rf build/*                   # 或者粗暴地清空构建目录
+```
+
+**常用配置选项：**
+```bash
+cmake -G "Ninja" ..                  # 指定生成器（默认 Unix Makefiles）
+cmake -DCMAKE_BUILD_TYPE=Release ..  # 指定构建类型
+```
+
+**构建类型(`build type`)：**
+- `Debug`：关闭优化、带调试符号——开发调试用
+- `Release`：开启优化——发布用
+- `RelWithDebInfo`：优化 + 保留调试符号
+- `MinSizeRel`：最小体积优化
+
+**生成器与产物：** 不同生成器(`generator`)产出不同的构建文件——`Unix Makefiles` 产出 Makefile、`Ninja` 产出 build.ninja、`Visual Studio` 产出 `.sln`。**CMake 负责配置，底层构建系统负责真正的编译。**
+
+底层工具的等价命令（了解即可）：
+```bash
+make -j$(nproc)     # make 并行编译
+ninja               # ninja 编译
+```
+
+**注意点**
+> ⚠️ **关键区分**：始终使用源外构建——所有生成物放进 `build/` 目录，源码树保持干净；建议把 `build/` 加入 `.gitignore`。
+> 💡 **理解技巧**：优先用 `cmake --build .` 而不是直接敲 `make`——它屏蔽了底层工具差异，同一命令在 Makefile、Ninja、VS 工程上都适用。
+> 📋 **术语提醒**：`cmake ..` 里的 `..` 是指向**包含顶层 CMakeLists.txt 的源码目录**，不是固定写法。
+
+---
+
+<a id="id13"></a>
+## ✅ 知识点 13: 完整构建实例
+
+**一个包含自定义库的最小项目：三个源文件、一份 CMakeLists.txt，走完配置、编译、运行、清理全流程。**
+
+**项目结构：**
+```
+MyProject/
+├── CMakeLists.txt      # 构建规则、目标和依赖关系
+├── src/
+│   ├── main.cpp        # 入口，含 main()
+│   └── mylib.cpp       # 自定义库实现
+└── include/
+    └── mylib.h         # 库的头文件
+```
+
+**完整 CMakeLists.txt：**
+```cmake
+cmake_minimum_required(VERSION 3.10)              # 最低版本，必须最顶部
+project(MyProject VERSION 1.0)                    # 项目名 + 版本号
+
+set(CMAKE_CXX_STANDARD 11)                        # 强制 C++11
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+include_directories(${PROJECT_SOURCE_DIR}/include) # 头文件搜索路径
+
+add_library(MyLib src/mylib.cpp)                  # 库目标（未指定类型，由 BUILD_SHARED_LIBS 决定）
+add_executable(MyExecutable src/main.cpp)         # 可执行文件目标
+target_link_libraries(MyExecutable MyLib)         # 链接库到可执行文件
+```
+
+**构建与运行：**
+```bash
+mkdir build && cd build   # 源外构建目录
+cmake ..                  # 配置：检测编译器，生成 Makefile
+cmake --build .           # 编译，产出 MyExecutable 和 libMyLib.a
+./MyExecutable            # 运行
+make clean                # 清理（或 rm -rf build）
+```
+
+配置阶段的典型输出：
+```
+-- The CXX compiler identification is GNU 11.4.0
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /path/to/MyProject/build
+```
+
+**注意点**
+> ⚠️ **关键区分**：`add_executable`/`add_library` 中的源文件路径是**相对于 CMakeLists.txt 所在目录**的；目标名**大小写敏感**（`MyLib` 和 `mylib` 是两个不同目标）。
+> ⚠️ **关键区分**：改了 CMakeLists.txt 要重新 `cmake ..`；只改 `.cpp` 源文件直接 `cmake --build .` 即可。
+> 💡 **理解技巧**：对照知识点 3——`add_library(MyLib ...)` + `target_link_libraries(...)` 两行，等价于手动 `g++ -c` 制作库 + `g++ -l -L` 链接的整个流程。这就是 CMake 的价值。
+> 🔄 **知识关联**：本例用 `include_directories` 是为了简洁；实际项目应改用知识点 10 的 `target_include_directories(MyLib PUBLIC include)`。
+
+---
+
+<a id="id14"></a>
+## ✅ 知识点 14: 进阶——构建配置与目标属性
+
+**不同生成器对构建类型的处理方式不同；以目标为单位用 `target_compile_options` 等命令精细控制编译行为。**
+
+**单配置 vs 多配置生成器：**
+- **单配置生成器**（`Unix Makefiles`、`Ninja`）：配置时确定构建类型 `cmake .. -DCMAKE_BUILD_TYPE=Release`，一份 build 目录对应一种类型
+- **多配置生成器**（`Visual Studio`、`Xcode`）：配置时不定类型，构建时才选 `cmake --build . --config Release`
+
+**多目标管理：** 一个项目可以定义多个目标，各自设置不同的编译宏和链接库：
+```cmake
+add_executable(MyApp src/main.cpp)
+add_executable(MyTool src/tool.cpp)
+
+target_link_libraries(MyApp PRIVATE MyLib)
+target_link_libraries(MyTool PRIVATE MyLib CLI11::CLI11)
+```
+
+**目标编译选项（现代推荐写法）：**
+```cmake
+target_compile_options(MyApp PRIVATE -Wall -Wextra -Wpedantic) # 编译警告选项
+target_compile_definitions(MyApp PRIVATE RUNOOB_VERSION="1.0") # 等价于 #define
+target_link_options(MyApp PRIVATE -L/usr/local/lib)            # 链接选项
+target_compile_features(MyLib PUBLIC cxx_std_17)               # 要求 C++17，PUBLIC 传播给使用者
+```
+
+旧式的 `set_target_properties(MyApp PROPERTIES ...)` 也能设置 `COMPILE_OPTIONS`、`COMPILE_DEFINITIONS`、`LINK_FLAGS`、`OUTPUT_NAME` 等属性，但带可见性控制的 `target_xxx` 系列是现代 CMake 的推荐方式。
+
+**注意点**
+> ⚠️ **关键区分**：`CMAKE_BUILD_TYPE` 只对单配置生成器有效；多配置生成器要用 `--config`。
+> ⚠️ **关键区分**：交叉编译的工具链文件必须在**首次** `cmake` 配置时通过 `-DCMAKE_TOOLCHAIN_FILE=` 指定，切换工具链需清空构建目录（交叉编译细节入门阶段了解即可）。
+> 💡 **理解技巧**：凡是想给"某个目标"加选项，就找对应的 `target_xxx` 命令并想清楚用 PRIVATE 还是 PUBLIC——这套思维模式比背命令重要。
+> 📋 **术语提醒**：`configure_file()` 可以把 CMake 变量的值注入生成 C++ 头文件（如版本号 `config.h`），需要时查阅即可。
+
+---
+
 ## 🔑 核心要点总结
 
 1. **静态库(.a) = 编译时复制**：代码嵌入可执行文件，自包含、启动快，但体积大、更新需全量重编译。
@@ -210,6 +510,9 @@
 3. **内存共享是动态库的核心优势**：多进程共用同一份物理内存中的代码段，各自持有独立数据段。
 4. **编译器默认优先动态库**：`.so` 和 `.a` 共存时，`-l` 优先选 `.so`。
 5. **核心权衡**：静态 = 部署简单 + 启动快 vs 体积大 + 更新重；动态 = 省空间 + 易升级 vs 运行时依赖 + 需配置路径。
+6. **CMake = 构建系统生成器**：读 CMakeLists.txt 生成 Makefile 等构建文件，本身不编译；`add_library` + `target_link_libraries` 替代了手动 `g++ -c` 与 `-l -L`。
+7. **标准构建四步**：`mkdir build && cd build → cmake .. → cmake --build .`，坚持源外构建；`-D` 覆盖缓存变量，`-DCMAKE_BUILD_TYPE=` 选 Debug/Release。
+8. **现代 CMake 以目标为中心**：优先 `target_xxx` 系列指令 + PRIVATE/PUBLIC/INTERFACE 可见性；第三方库用 `find_package` + 导入目标（如 `Boost::Boost`）。
 
 ## 📌 考试速记版
 
