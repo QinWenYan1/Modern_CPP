@@ -1,0 +1,112 @@
+# 📘 Chapter 17 - C++ 开发工具链 (Dev Toolchain)
+
+> C++ 工程实践必备工具  
+> 本章涵盖：构建系统（Makefile）、调试器（GDB）、静态库与动态库的创建与链接
+
+---
+
+## 📑 章节导航
+
+### 17.1 C++ 开发工具链 🛠️
+Makefile 构建系统、GDB 调试器、静态库与动态库的创建与链接  
+[→ 查看笔记](./note_17_1_dev_tools.md)
+
+---
+
+## 🎯 知识点索引
+
+<details>
+<summary><b>🔧 Makefile 构建系统</b></summary>
+
+- [Makefile 基本语法](./note_17_1_engineering_foundations.md)
+- [规则（target, prerequisite, recipe）](./note_17_1_engineering_foundations.md)
+- [变量与自动变量](./note_17_1_engineering_foundations.md)
+- [模式规则与隐式规则](./note_17_1_engineering_foundations.md)
+- [多目录项目管理](./note_17_1_engineering_foundations.md)
+
+</details>
+
+<details>
+<summary><b>🐛 GDB 调试器</b></summary>
+
+- [编译时加 `-g` 选项](./note_17_1_engineering_foundations.md)
+- [断点（breakpoint）与观察点（watchpoint）](./note_17_1_engineering_foundations.md)
+- [单步执行（step, next, continue）](./note_17_1_engineering_foundations.md)
+- [调用栈（backtrace, frame）](./note_17_1_engineering_foundations.md)
+- [变量查看与内存检查](./note_17_1_engineering_foundations.md)
+- [core dump 分析](./note_17_1_engineering_foundations.md)
+
+</details>
+
+<details>
+<summary><b>📦 静态库与动态库</b></summary>
+
+- [静态库 `.a`（Linux）/ `.lib`（Windows）](./note_17_1_engineering_foundations.md)
+- [动态库 `.so`（Linux）/ `.dylib`（macOS）/ `.dll`（Windows）](./note_17_1_engineering_foundations.md)
+- [`ar` 与 `ranlib` 创建静态库](./note_17_1_engineering_foundations.md)
+- [编译时链接 vs 运行时加载（`dlopen`）](./note_17_1_engineering_foundations.md)
+- [头文件管理与 `-I`, `-L`, `-l` 选项](./note_17_1_engineering_foundations.md)
+
+</details>
+
+---
+
+## 💡 核心速查
+
+**Makefile 基础模板**
+```makefile
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -g
+TARGET = prog
+OBJS = main.o foo.o bar.o
+
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+.PHONY: clean
+clean:
+	rm -f $(OBJS) $(TARGET)
+```
+
+**GDB 常用命令**
+```bash
+g++ -g -o prog prog.cpp          # 编译时加调试信息
+gdb ./prog                        # 启动 GDB
+(gdb) break main                  # 在 main 处设断点
+(gdb) run                         # 运行程序
+(gdb) next                        # 单步（不进入函数）
+(gdb) step                        # 单步（进入函数）
+(gdb) print var                   # 查看变量值
+(gdb) backtrace                   # 查看调用栈
+(gdb) continue                    # 继续运行
+```
+
+**静态库与动态库**
+```bash
+# 静态库
+g++ -c foo.cpp -o foo.o
+ar rcs libfoo.a foo.o             # 创建静态库
+g++ main.cpp -L. -lfoo -o prog    # 链接静态库
+
+# 动态库（Linux）
+g++ -fPIC -c foo.cpp -o foo.o
+g++ -shared -o libfoo.so foo.o    # 创建动态库
+g++ main.cpp -L. -lfoo -o prog    # 链接动态库
+
+# 动态库（macOS）
+g++ -dynamiclib -o libfoo.dylib foo.cpp
+```
+
+---
+
+## 🔗 相关链接
+
+← [上一章：第 16 章 - 模板与泛型编程](../Chapter16_templates_and_generic_programming/README.md)  
+↑ [返回根目录](../README.md)
+
+---
+
+> 🛠️ *"掌握工具链，才是从写代码到交付软件的关键一步。"*
