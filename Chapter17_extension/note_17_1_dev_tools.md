@@ -365,7 +365,8 @@
 
 **我们还有系统性引入第三方库的方法**
 
-- **`find_package` 自动在系统中查找已安装的第三方库，配合导入目标一行链接，免去手动指定头文件路径和库路径**
+- **`find_package`：自动在系统中查找已安装的第三方库，配合导入目标一行链接，免去手动指定头文件路径和库路径**
+    ![alt text](images/5.png)
     ```cmake
     find_package(Boost REQUIRED)                     # 查找Boost找不到就报错终止
     target_link_libraries(MyApp PRIVATE Boost::Boost) # 链接导入目标
@@ -375,7 +376,7 @@
 - **现代写法**：链接 `Boost::Boost` 这类**导入目标(`imported target`)**——它自动携带头文件路径、库文件路径等全部信息
 - **旧式写法**（不推荐）：手动使用 `${Boost_INCLUDE_DIRS}`、`${Boost_LIBRARIES}` 等变量拼装
 
-**注意点**
+
 > ⚠️ **关键区分**：优先链接 `Boost::filesystem` 这样的导入目标，而不是旧式变量——目标会自动传播头文件路径，变量写法要手动 `include_directories`。
 > 💡 **理解技巧**：`find_package` + 导入目标 = 知识点 3、5 中 `-I`、`-L`、`-l` 三个手动步骤的全自动化。
 > 🔄 **知识关联**：指定组件查找（`find_package(Boost REQUIRED COMPONENTS filesystem system)`）和非标准路径搜索（`-DBOOST_ROOT=/path`）属于进阶用法，需要时查阅即可。
