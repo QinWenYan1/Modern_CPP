@@ -301,28 +301,28 @@
 <a id="id9"></a>
 ## ✅ 知识点 9: 变量与缓存
 
-**`set()` 定义变量、`${}` 引用变量；CACHE 变量会持久化到 CMakeCache.txt，可在命令行用 `-D` 覆盖。**
+- **`set()` 定义变量、`${}` 引用变量；CACHE 变量会持久化到 `CMakeCache.txt`，可在命令行用 `-D` 覆盖。**
 
-**普通变量：**
-```cmake
-set(SRC_LIST main.cpp foo.cpp)    # 定义变量
-add_executable(MyApp ${SRC_LIST}) # 用 ${} 引用
-```
-作用域为当前目录及其子目录。
+- **普通变量：**
+    ```cmake
+    set(SRC_LIST main.cpp foo.cpp)    # 定义变量
+    add_executable(MyApp ${SRC_LIST}) # 用 ${} 引用
+    ```
+    作用域为当前目录及其子目录。
 
-**缓存变量(`cache variable`)：**
-```cmake
-set(ENABLE_LOGGING ON CACHE BOOL "是否启用日志")
-```
-- 持久化存储在构建目录的 `CMakeCache.txt` 中，多次配置之间保持不变
-- 类型有 `STRING`、`BOOL`、`PATH`、`FILEPATH`
-- **可在命令行用 `-D` 覆盖，无需修改 CMakeLists.txt**：
-```bash
-cmake .. -DENABLE_LOGGING=OFF
-```
+- **缓存变量(`cache variable`)：** 让用户在 CMake 配置阶段自定义构建设置，例如开关功能或指定安装路径
+    ```cmake
+    set(ENABLE_LOGGING ON CACHE BOOL "是否启用日志")
+    ```
+    - **缓存变量**持久化存储在构建目录的 `CMakeCache.txt` 中，多次 `cmake` 配置之间保持不变
+    - 类型有 `STRING`、`BOOL`、`PATH`、`FILEPATH`
+    - **可在命令行用 `-D` 覆盖，无需修改 `CMakeLists.txt`**：
+        ```bash
+        # 在 cmake 命令中通过 -D 修改缓存变量
+        $ cmake .. -DMY_INSTALL_PATH=/opt/runoob -DENABLE_LOGGING=OFF
+        ```
 
-**注意点**
-> ⚠️ **关键区分**：CACHE 变量的默认值**不会自动更新**——如果 CMakeLists.txt 里改了默认值，已存在的 CMakeCache.txt 仍保留旧值。要么删 `CMakeCache.txt`，要么整个删掉 build 目录重新配置。
+> ⚠️ **关键区分**：CACHE 变量的默认值**不会自动更新**——如果` CMakeLists.txt` 里改了默认值，已存在的 `CMakeCache.txt` 仍保留旧值。要么删 `CMakeCache.txt`，要么整个删掉 build 目录重新配置。
 > 💡 **理解技巧**：CACHE 变量是"用户可调的旋钮"——项目作者在 CMakeLists 里给默认值，使用者在命令行用 `-D` 覆盖，两边都不用改对方的文件。
 
 ---
@@ -356,7 +356,7 @@ target_include_directories(MyLib PUBLIC ${PROJECT_SOURCE_DIR}/include)
 ---
 
 <a id="id11"></a>
-## ✅ 知识点 11: find_package 引入第三方库
+## ✅ 知识点 11: `find_package` 引入第三方库
 
 **`find_package` 自动在系统中查找已安装的第三方库，配合导入目标一行链接，免去手动指定头文件路径和库路径。**
 
