@@ -14,11 +14,12 @@
 - [*知识点7: `CMake` 是什么与为什么需要它*](#id7)
 - [*知识点8: `CMakeLists.txt` 基础语法与核心指令*](#id8)
 - [*知识点9: 变量与缓存*](#id9)
-- [*知识点10: 头文件搜索路径与可见性*](#id10)
-- [*知识点11: `find_package`引入第三方库*](#id11)
-- [*知识点12: 构建流程与构建类型*](#id12)
-- [*知识点13: 完整构建实例*](#id13)
-- [*知识点14: 进阶——构建配置与目标属性*](#id14)
+- [*知识点10: 常用预定义变量清单*](#id10)
+- [*知识点11: 头文件搜索路径与可见性*](#id11)
+- [*知识点12: `find_package`引入第三方库*](#id12)
+- [*知识点13: 构建流程与构建类型*](#id13)
+- [*知识点14: 完整构建实例*](#id14)
+- [*知识点15: 进阶——构建配置与目标属性*](#id15)
 
 ---
 <a id="id1"></a>
@@ -250,7 +251,7 @@
 
 > ⚠️ **关键区分**：CMake ≠ make。CMake 是"写菜谱的"，make 是"炒菜的"——CMake 生成 Makefile，make 按 Makefile 执行编译
 > 💡 **理解技巧**：CMake 的价值在于"一份配置，处处构建"——同一份 CMakeLists.txt 在 Linux 生成 Makefile，在 Windows 生成 Visual Studio 工程
-> 🔄 **知识关联**：CMake 的 `add_library` 一行就能完成知识点 3、5 中手动制作静态库/动态库的工作（见知识点 8、13）
+> 🔄 **知识关联**：CMake 的 `add_library` 一行就能完成知识点 3、5 中手动制作静态库/动态库的工作（见知识点 8、14）
 > 📋 **术语提醒**：构建系统生成器(`build system generator`)、源外构建(`out-of-source build`)
 
 ---
@@ -338,7 +339,80 @@
 ---
 
 <a id="id10"></a>
-## ✅ 知识点 10: 头文件搜索路径与可见性
+## ✅ 知识点 10: 常用预定义变量清单
+
+**CMake 内置了一批"开箱即用"的变量——不用 `set()` 就能直接 `${}` 引用；按分组规律记忆，比逐个硬背重要得多。**
+
+- 上一个知识点讲了怎么用 `set()` 自己定义变量。实际上 CMake 已经预定义了大量变量，涵盖项目路径、输出位置、
+- 编译选项等——写 CMakeLists.txt 时，**大部分时间是在"用"这些变量，而不是"造"变量**
+
+- **📁 项目与路径类——回答"源码在哪"**
+
+    | 变量 | 含义 | 示例值（以 qwenrpc 项目为例） |
+    |------|------|------------------------------|
+    | `PROJECT_NAME` | `project()` 指定的项目名 | `qwenrpc` |
+    | `PROJECT_VERSION` | `project(qwenrpc VERSION 1.0)` 里的版本号 | `1.0` |
+    | `PROJECT_SOURCE_DIR` | 项目源码根目录（最近的 `project()` 所在处） | `~/qwenrpc` |
+    | `PROJECT_BINARY_DIR` | 对应的构建目录（执行 `cmake` 的目录） | `~/qwenrpc/build` |
+    | `CMAKE_CURRENT_SOURCE_DIR` | **当前正在处理**的 CMakeLists.txt 所在目录 | 处理到 src 子目录时是 `~/qwenrpc/src` |
+    | `CMAKE_CURRENT_BINARY_DIR` | 当前 CMakeLists.txt 对应的构建目录（随 `add_subdirectory` 变化） | `~/qwenrpc/build/src` |
+> ⚠️ **关键区分**：`PROJECT_SOURCE_DIR` 跟着**最近的 `project()`** 走，`CMAKE_CURRENT_SOURCE_DIR` 跟着**当前正在处理的 CMakeLists.txt** 走——多目录项目里两者常常不同
+
+- **📦 输出位置类——回答"产物放哪"**
+
+    | 变量 | 含义 |
+    |------|------|
+    | `EXECUTABLE_OUTPUT_PATH` | 可执行文件输出目录（常设为 `${PROJECT_SOURCE_DIR}/bin`） |
+    | `LIBRARY_OUTPUT_PATH` | 库文件(`.a`/`.so`)输出目录（常设为 `${PROJECT_SOURCE_DIR}/lib`） |
+    | `CMAKE_INSTALL_PREFIX` | `make install` 的安装前缀（默认 `/usr/local`） |
+    | `BUILD_SHARED_LIBS` | `ON` 时 `add_library` 默认编动态库；不设/`OFF` 默认静态库 |
+
+- **⚙️ 编译选项类——回答"怎么编译"**
+
+    | 变量 | 含义 |
+    |------|------|
+    | `CMAKE_CXX_STANDARD` | C++ 标准，如 `set(CMAKE_CXX_STANDARD 17)` |
+    | `CMAKE_CXX_FLAGS` | C++ 编译选项（对所有构建类型生效） |
+    | `CMAKE_CXX_FLAGS_DEBUG` | Debug 构建时**追加**的 C++ 选项 |
+    | `CMAKE_CXX_FLAGS_RELEASE` | Release 构建时**追加**的 C++ 选项 |
+    | `CMAKE_C_FLAGS` | C 编译选项（纯 C 源文件用） |
+
+> 💡 **理解技巧**：追加 FLAGS 时写成 `"${CMAKE_CXX_FLAGS} -g -Wall"` 而不是直接赋值——直接赋值会覆盖 CMake 自己设置的默认选项
+
+- **🔧 构建类型与工具类——回答"谁来构建"**
+
+    | 变量 | 含义 |
+    |------|------|
+    | `CMAKE_BUILD_TYPE` | 构建类型：`Debug` / `Release` / `RelWithDebInfo` / `MinSizeRel` |
+    | `CMAKE_GENERATOR` | **生成器**名称（如 `Unix Makefiles`、`Ninja`） |
+    | `CMAKE_CXX_COMPILER` | C++ 编译器路径（如 `/usr/bin/g++`） |
+    | `CMAKE_COMMAND` | cmake 可执行文件本身的完整路径（如 `/usr/bin/cmake`） |
+> ⚠️ **关键区分**：`CMAKE_GENERATOR` 是**生成器**名称（决定产出 Makefile 还是 Ninja 文件），不是编译器；编译器路径在 `CMAKE_CXX_COMPILER`——两者常被混淆
+
+- **示例/实践**
+    ```cmake
+    # ${} 取值：把可执行文件输出到源码树的 bin/
+    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+
+    # 追加（而非覆盖）编译选项：先取旧值再拼新值
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
+
+    # 布尔变量直接在 if() 里判断
+    if(BUILD_SHARED_LIBS)
+        message(STATUS "构建动态库")
+    endif()
+    ```
+
+- **一句话记忆**：`PROJECT_*` 跟着项目走，`CMAKE_CURRENT_*` 跟着当前 CMakeLists 走，`*_OUTPUT_PATH` 管产物放哪，`CMAKE_*_FLAGS` 管编译选项
+
+
+> 🔄 **知识关联**：`CMAKE_BUILD_TYPE` 详见知识点 13（构建流程与构建类型）；`BUILD_SHARED_LIBS` 决定 `add_library` 的默认产物类型，呼应知识点 8
+> 📋 **术语提醒**：预定义变量(`predefined variables`)、布尔变量(`boolean variable`)
+
+---
+
+<a id="id11"></a>
+## ✅ 知识点 11: 头文件搜索路径与可见性
 
 **优先使用目标级的 `target_include_directories`，用  `PRIVATE/PUBLIC/INTERFACE` 精确控制头文件路径的传播范围。**
 
@@ -359,14 +433,14 @@
     ```
 
 
-> ⚠️ **关键区分**：`include_directories` 是"大锅饭"，`target_include_directories` 是"按需分配"——后者才能让库的依赖关系清晰可维护。
+> ⚠️ **关键区分**：`include_directories` 是"大锅饭"，`target_include_directories` 是"按需分配"——后者才能让库的依赖关系清晰可维护
 > 💡 **理解技巧**：PUBLIC 口诀"我用，你也用"——库把自己的 include 路径标记为 PUBLIC，使用者就不用再手动 `-I` 了。这正是对知识点 3、5 中手动头文件管理的自动化。
-> 🔄 **知识关联**：同样的 PRIVATE/PUBLIC/INTERFACE 也用于 `target_compile_options`、`target_link_libraries` 等其他 target_xxx 指令（见知识点 14）。
+> 🔄 **知识关联**：同样的 PRIVATE/PUBLIC/INTERFACE 也用于 `target_compile_options`、`target_link_libraries` 等其他 target_xxx 指令（见知识点 15）。
 
 ---
 
-<a id="id11"></a>
-## ✅ 知识点 11: `find_package` 引入第三方库
+<a id="id12"></a>
+## ✅ 知识点 12: `find_package` 引入第三方库
 
 **我们还有系统性引入第三方库的方法**
 
@@ -389,8 +463,8 @@
 
 ---
 
-<a id="id12"></a>
-## ✅ 知识点 12: 构建流程与构建类型
+<a id="id13"></a>
+## ✅ 知识点 13: 构建流程与构建类型
 
 **标准构建的关键流程**
 
@@ -431,8 +505,8 @@
 
 ---
 
-<a id="id13"></a>
-## ✅ 知识点 13: 完整构建实例
+<a id="id14"></a>
+## ✅ 知识点 14: 完整构建实例
 
 **一个包含自定义库的最小项目：三个源文件、一份 CMakeLists.txt，走完配置、编译、运行、清理全流程。**
 
@@ -503,12 +577,12 @@
 > ⚠️ **关键区分**：`add_executable`/`add_library` 中的源文件路径是**相对于 CMakeLists.txt 所在目录**的；目标名**大小写敏感**（`MyLib` 和 `mylib` 是两个不同目标）。
 > ⚠️ **关键区分**：改了 CMakeLists.txt 要重新 `cmake ..`；只改 `.cpp` 源文件直接 `cmake --build .` 即可。
 > 💡 **理解技巧**：对照知识点 3——`add_library(MyLib ...)` + `target_link_libraries(...)` 两行，等价于手动 `g++ -c` 制作库 + `g++ -l -L` 链接的整个流程。这就是 CMake 的价值。
-> 🔄 **知识关联**：本例用 `include_directories` 是为了简洁；实际项目应改用知识点 10 的 `target_include_directories(MyLib PUBLIC include)`。
+> 🔄 **知识关联**：本例用 `include_directories` 是为了简洁；实际项目应改用知识点 11 的 `target_include_directories(MyLib PUBLIC include)`。
 
 ---
 
-<a id="id14"></a>
-## ✅ 知识点 14: 进阶——构建配置与目标属性
+<a id="id15"></a>
+## ✅ 知识点 15: 进阶——构建配置与目标属性
 
 **不同生成器对构建类型的处理方式不同；以目标为单位用 `target_compile_options` 等命令精细控制编译行为。**
 
@@ -553,6 +627,7 @@
 6. **CMake = 构建系统生成器**：读 CMakeLists.txt 生成 Makefile 等构建文件，本身不编译；`add_library` + `target_link_libraries` 替代了手动 `g++ -c` 与 `-l -L`。
 7. **标准构建四步**：`mkdir build && cd build → cmake .. → cmake --build .`，坚持源外构建；`-D` 覆盖缓存变量，`-DCMAKE_BUILD_TYPE=` 选 Debug/Release。
 8. **现代 CMake 以目标为中心**：优先 `target_xxx` 系列指令 + PRIVATE/PUBLIC/INTERFACE 可见性；第三方库用 `find_package` + 导入目标（如 `Boost::Boost`）。
+9. **预定义变量按组记**：`PROJECT_*` 跟项目走、`CMAKE_CURRENT_*` 跟当前 CMakeLists 走、`*_OUTPUT_PATH` 管产物、`CMAKE_*_FLAGS` 管编译选项。
 
 
 ---
