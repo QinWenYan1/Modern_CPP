@@ -11,7 +11,7 @@ This is a **C++ learning notes repository** — structured Markdown study notes 
 Content has two sources:
 
 - **Chapters 1–16 (Parts 1–3: 基础 / 标准库 / 类和面向对象)** — notes for *C++ Primer (5th Edition)*, complete.
-- **Chapter 17+ (Part 4: C++ 拓展)** — extension content beyond the textbook. Currently the dev toolchain (Makefile, GDB, static/dynamic libraries); *Effective Modern C++* is planned. These notes are self-curated from courses/videos, not tied to any book's section numbering.
+- **Chapter 17+ (Part 4: C++ 拓展)** — extension content beyond the textbook. Chapter 17 (`Chapter17_concurrency_parallelism/`) is 并发与并行, sourced from *现代 C++ 教程：高速上手 C++* (ch. 7, the PDF in the repo root); Chapter 18 (`Chapter18_extension/`) is the dev toolchain (static/dynamic libraries, CMake); *Effective Modern C++* is planned. These notes are self-curated from courses/videos/books, not tied to the Primer's section numbering.
 
 ## Content organization
 
@@ -24,7 +24,7 @@ ChapterNN_topic/
     └── exercise_N_M.cpp               # Naming: exercise_<chapter>_<number>.cpp
 ```
 
-- Chapters 1–16 are complete. Chapter 17 (`Chapter17_extension/`) is in progress — notes are being built incrementally from user-provided screenshots.
+- Chapters 1–16 are complete. Chapter 17 (`Chapter17_concurrency_parallelism/`, 并发与并行) is complete. Chapter 18 (`Chapter18_extension/`) is in progress — notes are being built incrementally from user-provided screenshots.
 - Each chapter README links to its notes and to the previous/next chapter and root README.
 - Note filenames use the pattern `note_<chapter>_<section>_<topic_slug>.md` (e.g., `note_7_1_defining_abstract_data_type.md`).
 - Exercise filenames use the pattern `exercise_<chapter>_<number>.cpp`; grouped exercises use ranges (e.g., `exercise_12_6-7.cpp`).
@@ -68,7 +68,7 @@ These skills are registered and can be invoked with `Skill`:
 
 For extension chapters, the user provides source content incrementally and reviews drafts:
 
-- Content often arrives as **batches of screenshots** saved to a folder in the repo (e.g., `Chapter17_extension/_screenshots/`).
+- Content often arrives as **batches of screenshots** saved to a folder in the repo (e.g., `Chapter18_extension/images/`).
 - Screenshots may be PNG data with `.jpg` extensions — check with `file` and rename before reading. If the Read tool can't render an image, fall back to OCR: `tesseract <img> stdout -l chi_sim+eng` (Chinese + English language packs are installed via Homebrew).
 - Workflow: generate a **draft note** in the chapter folder → user reviews and gives corrections → revise. Do a final global pass only when the user confirms the material is complete.
 - Do not create the final chapter README navigation or update the root README until the chapter's notes are stable.

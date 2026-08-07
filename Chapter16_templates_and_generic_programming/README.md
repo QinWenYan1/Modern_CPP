@@ -223,7 +223,7 @@ vec.emplace_back("hello");     // 调用 string(const char*)
 
 ← [上一章：第 15 章 - 面向对象程序设计](../Chapter15_object_oriented_programming/README.md)
 
-→ [下一章：第 17 章 - 标准库特殊设施](../Chapter17_specialized_library_facilities/README.md)
+→ [下一章：第 17 章 - 并发与并行](../Chapter17_concurrency_parallelism/README.md)
 
 ↑ [返回根目录](../README.md)
 
