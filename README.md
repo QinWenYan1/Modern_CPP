@@ -1,6 +1,6 @@
 ![morden C++](materials/cover.jpeg)
 
-![Language](https://img.shields.io/badge/语言-中文-red?style=flat-square)![C++11](https://img.shields.io/badge/C%2B%2B-11-00599C?style=flat-square&logo=c%2B%2B)![License](https://img.shields.io/github/license/QinWenYan1/Modern_CPP?style=flat-square)
+![Language](https://img.shields.io/badge/语言-中文-red?style=flat-square) ![C++11](https://img.shields.io/badge/C%2B%2B-11-00599C?style=flat-square&logo=c%2B%2B) ![License](https://img.shields.io/github/license/QinWenYan1/Modern_CPP?style=flat-square)
 > 从入门到精通，系统讲解 C++ 语法、类设计、STL 与 C++11 新特性
 
 
