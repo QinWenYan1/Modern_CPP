@@ -428,19 +428,4 @@ std::cout << "current counter:" << counter << std::endl;
 4. **六种 `memory_order` 表达四种同步模型**：relaxed（仅原子性）→ release/consume（数据依赖可见）→ release/acquire/acq_rel（happens-before，向后/向前屏障）→ seq_cst（顺序一致，**默认**）
 5. **CAS 原语**：`compare_exchange_weak`（可能虚假失败、须配循环、性能优先）vs `compare_exchange_strong`（无假失败、略慢）——无锁编程的基石
 
-## 📌 考试速记版
-
-| memory_order | 同步模型 | 一句话语义 |
-|---|---|---|
-| `relaxed` | 宽松 | 只保原子性，不保顺序（计数器专用） |
-| `release` | 释放 | 之前的写不许重排到它之后（向后屏障） |
-| `consume` | 消费 | 有数据依赖的读取可见 |
-| `acquire` | 获取 | 之后的读不许重排到它之前（向前屏障） |
-| `acq_rel` | 释放+获取 | 读改写操作的双向屏障 |
-| `seq_cst` | 顺序一致 | 全局统一顺序，**默认值**，最安全也最慢 |
-
-- **一致性模型强弱**：线性 > 顺序 > 因果 > 最终
-- **常见陷阱**：① 用 `volatile` 当同步 → UB；② 需要顺序却用 relaxed → 诡异 bug；③ `compare_exchange_weak` 不配循环 → 假失败漏处理；④ 忘记默认是 seq_cst，白花性能
-- **核心关系**：release 之前的写 **happens-before** acquire 之后的读
-
-**记忆口诀**：原子操作一条令，volatile 救不了命；relaxed 只管自己，release/acquire 配对行；weak 循环 strong 单，默认 seq 最安宁。
+---
