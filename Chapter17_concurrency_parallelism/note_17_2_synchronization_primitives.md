@@ -213,7 +213,10 @@ int main() {
 ```
 
 - `task.get_future()`：取得与任务关联的 `std::future<int>`
-- `std::thread(std::move(task)).detach()`：在新线程中执行任务并**分离**（主线程不 join 它）
+- `std::thread(std::move(task)).detach()`：在新线程中执行任务并**分离**（主线程不`join`它）
+    - `std::packaged_task` 是 `move-only` 类型——它禁用了拷贝构造函数，只允许移动
+    - 一份 `packaged_task` 只能绑定到一个执行实体，通过禁用拷贝、只允许移动来保证 **"谁执行、谁负责交付结果"** 的唯一性
+
 - `result.wait()`：**屏障**——阻塞到期物完成
 - `result.get()`：**取回执行结果**（输出 7）
 
