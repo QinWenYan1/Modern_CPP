@@ -22,36 +22,41 @@
 <a id="id1"></a>
 ## ✅ 知识点1: 引入：优化与重排下的并发陷阱
 
-**编译器优化与 CPU 乱序执行会让「直觉上正确」的并发代码实际成为未定义行为。**
+**编译器优化与 CPU 乱序执行会让「直觉上正确」的并发代码实际成为未定义行为**
 
-细心的读者可能会对上一节生产者-消费者模型的例子存在疑虑：编译器可能对变量 `notified` 存在优化，例如**将其作为一个寄存器的值**，从而导致消费者线程**永远无法观察到此值的变化**。为了解释清楚这个问题，我们需要进一步讨论从 C++11 起引入的**内存模型(memory model)** 这一概念。我们首先来看一个问题——下面这段代码输出结果是多少？
+- 细心的读者可能会对上一节生产者-消费者模型的例子存在疑虑：
+    - 编译器可能对变量 `notified` 存在优化
+    - 编译器可能认为**消费者线程**自己的代码里从没修改 `notified`，于是把它读进寄存器，作为一个寄存器的值
+    - 从而导致消费者线程**永远无法观察到此值的变化**
+    - 为了解释清楚这个问题，我们需要进一步讨论从 C++11 起引入的**内存模型(memory model)** 这一概念
+    - 我们首先来看一个问题——下面这段代码输出结果是多少？
 
-**示例/实践**
-```cpp
-#include <thread>
-#include <iostream>
+- **示例/实践**
+    ```cpp
+    #include <thread>
+    #include <iostream>
 
-int main() {
-    int a = 0;
-    volatile int flag = 0;
+    int main() {
+        int a = 0;
+        volatile int flag = 0;
 
-    std::thread t1([&]() {
-        while (flag != 1);
+        std::thread t1([&]() {
+            while (flag != 1);
 
-        int b = a;
-        std::cout << "b = " << b << std::endl;
-    });
+            int b = a;
+            std::cout << "b = " << b << std::endl;
+        });
 
-    std::thread t2([&]() {
-        a = 5;
-        flag = 1;
-    });
+        std::thread t2([&]() {
+            a = 5;
+            flag = 1;
+        });
 
-    t1.join();
-    t2.join();
-    return 0;
-}
-```
+        t1.join();
+        t2.join();
+        return 0;
+    }
+    ```
 
 - **`volatile`：告诉编译器“别优化掉对这个变量的真实读写”**
     - 这个变量可能被“外部因素”随时改变，不要假设它不会变
@@ -79,12 +84,12 @@ int main() {
 
 **互斥锁是操作系统级的强同步，编译出来是一组指令；对仅需原子操作的变量来说太苛刻。**
 
-`std::mutex` 可以解决上面出现的并发读写问题，但互斥锁是**操作系统级**的功能——一个互斥锁的实现通常包含两条基本原理：
+- `std::mutex` 可以解决上面出现的并发读写问题，但互斥锁是**操作系统级**的功能——一个互斥锁的实现通常包含两条基本原理：
 
-1. 提供线程间自动的状态转换，即**锁住这个状态**
-2. 保障在互斥锁操作期间，所操作变量的**内存与临界区外进行隔离**
+    1. 提供线程间自动的状态转换，即**锁住这个状态**
+    2. 保障在互斥锁操作期间，所操作变量的**内存与临界区外进行隔离**
 
-- 这是一组**非常强的同步条件**——换句话说，当最终编译为 CPU 指令时会表现为**非常多的指令**
+- 这是一组**非常强的同步条件**，当最终编译为 CPU 指令时会表现为**非常多的指令**
 - 这对于一个<b>仅需原子级操作（没有中间态）</b>的变量，似乎太苛刻了
 - 现代 CPU 体系结构提供了 **CPU 指令级的原子操作**——这正是 `std::atomic` 的硬件基础
 
@@ -98,32 +103,36 @@ int main() {
 
 **`std::atomic` 模板把一次原子写操作从一组指令最小化到单个 CPU 指令。**
 
-- C++11 中引入了 **`std::atomic` 模板**：使得我们能实例化**原子类型**，并将一个原子写操作从一组指令，**最小化到单个 CPU 指令**。例如：`std::atomic<int> counter;`
-- 为整数或浮点数的原子类型提供了基本的数值成员函数，举例来说，包括 **`fetch_add`、`fetch_sub`** 等
-- 同时通过**重载**方便地提供了对应的 `+`、`-` 版本（`count++`、`count += 1` 等价于 `fetch_add`）
+- C++11 中引入了 **`std::atomic` 模板**：
+    - 使得我们能实例化**原子类型**，并将一个原子写操作从一组指令，
+    - **最小化到单个 CPU 指令**，例如：`std::atomic<int> counter;`
+- **为整数或浮点数的原子类型提供了基本的数值成员函数**
+    - 举例来说，包括 **`fetch_add`、`fetch_sub`** 等
+- 同时通过**重载**方便地提供了对应的 `+`、`-` 版本
+    - `count++`、`count += 1` 等价于 `fetch_add`
 
-**示例/实践**
-```cpp
-#include <atomic>
-#include <thread>
-#include <iostream>
+- **示例/实践**
+    ```cpp
+    #include <atomic>
+    #include <thread>
+    #include <iostream>
 
-std::atomic<int> count = {0};
+    std::atomic<int> count = {0};
 
-int main() {
-    std::thread t1([](){
-        count.fetch_add(1);
-    });
-    std::thread t2([](){
-        count++;        // 等价于 fetch_add
-        count += 1;     // 等价于 fetch_add
-    });
-    t1.join();
-    t2.join();
-    std::cout << count << std::endl;
-    return 0;
-}
-```
+    int main() {
+        std::thread t1([](){
+            count.fetch_add(1);
+        });
+        std::thread t2([](){
+            count++;        // 等价于 fetch_add
+            count += 1;     // 等价于 fetch_add
+        });
+        t1.join();
+        t2.join();
+        std::cout << count << std::endl;
+        return 0;
+    }
+    ```
 
 - 三个线程共加 3 次，最终 `count` **必然输出 3**——原子操作没有中间态，不会丢更新
 
@@ -143,24 +152,23 @@ int main() {
   - 所实例化的类型结构是否能够满足该 CPU 架构对**内存对齐**条件的要求
 - 因而我们总是可以通过 **`std::atomic<T>::is_lock_free`** 来检查该原子类型是否支持原子操作
 
-**示例/实践**
-```cpp
-#include <atomic>
-#include <iostream>
+- **示例/实践**
+    ```cpp
+    #include <atomic>
+    #include <iostream>
 
-struct A {
-    float x;
-    int y;
-    long long z;
-};
+    struct A {
+        float x;
+        int y;
+        long long z;
+    };
 
-int main() {
-    std::atomic<A> a;
-    std::cout << std::boolalpha << a.is_lock_free() << std::endl;
-    return 0;
-}
-```
-
+    int main() {
+        std::atomic<A> a;
+        std::cout << std::boolalpha << a.is_lock_free() << std::endl;
+        return 0;
+    }
+    ```
 
 > 📋 **术语提醒**：`is_lock_free` 为 `false` 时该原子类型仍可使用，只是内部**退化为锁实现**——语义正确、性能不同
 > 💡 **理解技巧**：内置小整型几乎总是 lock-free；大的自定义结构体通常不是——所以高性能并发代码倾向用「原子指针/索引」而非「原子大对象」
