@@ -287,6 +287,33 @@
 | 释放/获取模型 | `memory_order_release` + `memory_order_acquire`（+ `memory_order_acq_rel`） | 中：happens-before |
 | 顺序一致模型 | `memory_order_seq_cst`（**默认值**） | 最强：全局统一顺序 |
 
+**原子性 VS 内存序列**：
+- `atomic` = 这个变量本身操作不可分割
+
+- `memory_order` = 这个原子操作和“周围其他内存操作”的顺序关系
+
+**实例**：
+- 比如线程 A：
+
+    ```
+    data = 100;   // 普通变量
+    flag.store(true,std::memory_order_relaxed);
+    ```
+- 线程 B：
+    ```
+    if (flag.load(std::memory_order_relaxed)) {
+        std::cout << data;
+    }
+    ```
+
+- 你可能以为：
+    ```
+    看到 flag == true
+    => 一定能看到 data == 100
+    ```
+
+- 但 `relaxed` 不提供这个保证 `data == 100`
+
 **注意点**
 > 📋 **术语提醒**：第六个选项 `memory_order_acq_rel` 用于读改写(read-modify-write) 操作，同时具有 acquire + release 语义——六种选项映射为四种模型
 > ⚠️ **关键提醒**：不显式指定时，原子操作默认使用 **`memory_order_seq_cst`**（最强、最安全、也最慢）——指定更弱序是优化手段，需理解后才可使用
