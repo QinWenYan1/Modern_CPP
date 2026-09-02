@@ -413,6 +413,17 @@ consumer.join();
   - `std::memory_order_release` 确保了它**之前**的写操作不会发生在释放操作之后——是一个**向后的屏障(backward)**
   - `std::memory_order_acquire` 确保了它**之后**的读行为不会发生在该获取操作之前——是一个**向前的屏障(forward)**
   - **`std::memory_order_acq_rel`** 结合了这两者的特点，唯一确定了一个内存屏障，使得当前线程对内存的读写**不会被重排并越过此操作的前后**
+  - 可以简单理解为：
+    ```
+        release：
+        前面的操作不能越过我 ↓
+
+        acquire：
+        后面的操作不能越过我 ↑
+
+        acq_rel：
+        两边都不能越过
+    ```
 
 **示例/实践**
 ```cpp
@@ -438,17 +449,20 @@ acqrel.join();
 acquire.join();
 ```
 
-- `release` 线程先写 `v` 再 `flag.store(1, release)`；`acquire` 线程看到 `flag >= 2` 后读 `v.at(0)` **必然是 42**——release 之前的写对 acquire 之后的读可见
-- 中间 `acqrel` 线程用 **CAS** 把 `flag` 从 1 改为 2
+1. `release` 线程先写 `v` 再 `flag.store(1, release)`
+2. `acquire` 线程看到 `flag >= 2` 后读 `v.at(0)` **必然是 42**
+3. release 之前的写对 acquire 之后的读可见
+4. 中间 `acqrel` 线程用 **CAS** 把 `flag` 从 1 改为 2
 
 **CAS（比较交换原语，Compare-and-Swap primitive）：**
-- `compare_exchange_strong(expected, desired, order)`：仅当当前值等于 `expected` 时替换为 `desired` 并返回 true；否则把当前值写回 `expected` 并返回 false
-- 它有一个更弱的版本 **`compare_exchange_weak`**：**允许即便交换成功，也仍然返回 `false` 失败**
-  - **原因**：某些平台上**虚假故障**导致的——具体而言，当 CPU 进行上下文切换时，另一线程加载同一地址产生的不一致
+- `compare_exchange_strong(expected, desired, order)`：
+    - 仅当当前值等于 `expected` 时替换为 `desired` 并返回 true；否则把当前值写回 `expected` 并返回 false
+- 它有一个更弱的版本 **`compare_exchange_weak`**：
+    - **允许即便交换成功，也仍然返回 `false` 失败**
+- **原因**：某些平台上**虚假故障**导致的——具体而言，当 CPU 进行上下文切换时，另一线程加载同一地址产生的不一致
   - `compare_exchange_strong` 的**性能可能稍差于** `compare_exchange_weak`
   - 但大部分情况下，鉴于其使用的复杂度而言，**`compare_exchange_weak` 应该被优先考虑**
 
-**注意点**
 > ⚠️ **关键区分**：`weak` 可能「假失败」→ 必须配合**循环**重试（如示例的 while）；`strong` 无假失败但略慢——**循环里用 weak，单次判断用 strong**
 > 💡 **理解技巧**：release/acquire 像「发令枪与终点线」——release 保证「我之前的活都干完了」，acquire 保证「我之后看到的都是成品」
 > 🔄 **知识关联**：happens-before 是 C++ 内存模型的核心关系——本章习题 2（用 `std::atomic<bool>` 实现互斥锁）正是 release/acquire 语义的直接应用
