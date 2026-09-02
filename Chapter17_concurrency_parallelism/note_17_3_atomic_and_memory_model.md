@@ -362,9 +362,13 @@ std::cout << "current counter:" << counter << std::endl;
 
 - **释放/消费模型**开始**限制进程间的操作顺序**：
     - 如果某个线程需要修改某个值，但另一个线程会对该值的某次操作**产生依赖，即后者依赖前者**
+    - **release**：把我前面做好的数据“发布出去”
+    - **consume**：如果我读到了这个发布出来的值，那么我可以安全使用“依赖这个值”的数据
 - 具体而言：
-    - 线程 A 完成了三次对 `x` 的写操作，线程 B **仅依赖其中第三次** `x` 的写操作,与前两次写行为无关
-    - 则当 A 主动 `x.release()`（即使用 `std::memory_order_release`）时，选项 **`std::memory_order_consume` 能够确保 B 在调用 `x.load()` 时候观察到 A 中第三次对 `x` 的写操作**
+    - 如果线程 A 完成了三次对 `x` 的写操作
+    - 线程 B **仅依赖其中第三次** `x` 的写操作,与前两次写行为无关
+    - 则当 A 主动 `x.release()`（即使用 `std::memory_order_release`）时
+    - 选项 **`std::memory_order_consume` 能够确保 B 在调用 `x.load()` 时候观察到 A 中第三次对 `x` 的写操作**
 
 **示例/实践**
 ```cpp
@@ -387,7 +391,8 @@ producer.join();
 consumer.join();
 ```
 
-- 生产者 `release` 发布指针；消费者 `consume` 载入指针后，**通过该指针解引用的数据（`*p`）保证可见**
+- 生产者 `release` 发布指针；
+- 消费者 `consume` 载入指针后，**通过该指针解引用的数据（`*p`）保证可见**
 - 指针先初始化为 `nullptr`，防止 consumer 从野指针读取；consumer 自旋等待 `ptr` 非空
 
 
