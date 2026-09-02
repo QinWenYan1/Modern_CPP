@@ -454,11 +454,12 @@ acquire.join();
 3. release 之前的写对 acquire 之后的读可见
 4. 中间 `acqrel` 线程用 **CAS** 把 `flag` 从 1 改为 2
 
-**CAS（比较交换原语，Compare-and-Swap primitive）：**
+**CAS（比较交换原语，Compare-and-Swap primitive）：CAS 是 atomic 提供的一种“条件修改”能力**
 - `compare_exchange_strong(expected, desired, order)`：
-    - 仅当当前值等于 `expected` 时替换为 `desired` 并返回 true；否则把当前值写回 `expected` 并返回 false
+    - 仅当当前值等于 `expected` 时替换为 `desired` 并返回 `true`: `flag = desired;`
+    - 否则把当前值写回 `expected` 并返回 `false`: `expected = flag;`
 - 它有一个更弱的版本 **`compare_exchange_weak`**：
-    - **允许即便交换成功，也仍然返回 `false` 失败**
+    - **允许偶尔莫名虚假失败(spurious failure)：某一次即便交换成功，也仍然返回 `false` 失败**
 - **原因**：某些平台上**虚假故障**导致的——具体而言，当 CPU 进行上下文切换时，另一线程加载同一地址产生的不一致
   - `compare_exchange_strong` 的**性能可能稍差于** `compare_exchange_weak`
   - 但大部分情况下，鉴于其使用的复杂度而言，**`compare_exchange_weak` 应该被优先考虑**
