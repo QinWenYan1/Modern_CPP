@@ -139,10 +139,11 @@ int main() {
 
 **理论**
 * **指向具体对象成员的普通指针**：
-    - `&obj.value`，已经定位到 `obj` 中的那个成员对象
-* **数据成员指针(pointer to data member)**
-    - `int Counter::*`，指定类的某个非静态数据成员，使用时还需要提供具体对象
-* **成员函数指针(pointer to member function)**，例如 `void (Counter::*)(int)`，指定普通非静态成员函数，调用时同样需要结合具体对象。
+    - `&obj.value`：已经定位到 `obj` 中的那个成员对象
+* **数据成员指针(pointer to data member) 定义**：
+    - `int Counter::*`：指定类的某个非静态数据成员，使用时还需要提供具体对象
+* **成员函数指针(pointer to member function) 定义**：
+    - `void (Counter::*)(int)`：指定普通非静态成员函数，调用时同样需要结合具体对象
 * 形成成员指针使用 **`&类名::成员名`**；访问方式取决于左侧是对象还是对象指针：
 
     | 操作 | 通过对象 | 通过对象指针 |
@@ -191,7 +192,7 @@ int main() {
 ## ✅ 知识点5: `this` 指针
 
 **理论**
-* **`this` 指针(this pointer)**在普通非静态成员函数中指向调用该函数的当前对象，可以用 `this->member` 显式访问成员。
+* **`this` 指针(this pointer)** 在普通非静态成员函数中指向调用该函数的当前对象，可以用 `this->member` 显式访问成员。
 * 当参数与数据成员同名时，可用 `this->` 明确表示数据成员。
 * 对类 `Counter` 而言，普通非 `const`、非 `volatile` 成员函数中的 `this` 类型为 `Counter*`；对应的 `const` 成员函数中为 `const Counter*`。
 * **`this` 是指针类型的纯右值(prvalue)表达式，不是一个可以重新赋值的指针变量**。不能因为 `this = ...` 不合法，就把其实际类型写成 `Counter* const`。参见[标准草案：this](https://eel.is/c++draft/expr.prim.this)。
