@@ -1,14 +1,16 @@
 # 📘 Chapter 12 - 动态内存 (Dynamic Memory)
 
-> 《C++ Primer》第 12 章学习笔记导航  
-> 本章涵盖：智能指针、new/delete、动态数组与内存管理
+> 《C++ Primer》第 12 章学习笔记导航，含小林 coding 指针问答补充
+>
+> 本章涵盖：原始指针的概念与用途、智能指针、new/delete、动态数组与内存管理
 
 ---
 
 ## 📑 章节导航
 
 ### 12.1 动态内存与智能指针 🧠
-shared_ptr、unique_ptr、weak_ptr、make_shared  
+原始指针与大小、函数指针、成员指针、this、shared_ptr、unique_ptr、weak_ptr、make_shared
+
 [→ 查看笔记](./note_12_1_dynamic_memory_and_smart_pointers.md)
 
 ### 12.2 直接管理内存 ⚠️
@@ -32,13 +34,26 @@ new/delete、new[]/delete[]、空悬指针
 ## 🎯 知识点索引
 
 <details>
+<summary><b>🔗 原始指针与用途</b></summary>
+
+- [原始指针的概念与大小](./note_12_1_dynamic_memory_and_smart_pointers.md#id1)
+- [指向普通对象与常量的指针](./note_12_1_dynamic_memory_and_smart_pointers.md#id2)
+- [函数指针](./note_12_1_dynamic_memory_and_smart_pointers.md#id3)
+- [数据成员指针与成员函数指针](./note_12_1_dynamic_memory_and_smart_pointers.md#id4)
+- [this 指针](./note_12_1_dynamic_memory_and_smart_pointers.md#id5)
+
+</details>
+
+<details>
 <summary><b>🧠 动态内存与智能指针</b></summary>
 
-- [shared_ptr 共享所有权](./note_12_1_dynamic_memory_and_smart_pointers.md)
-- [make_shared 安全创建](./note_12_1_dynamic_memory_and_smart_pointers.md)
-- [unique_ptr 独占所有权](./note_12_1_dynamic_memory_and_smart_pointers.md)
-- [weak_ptr 弱引用](./note_12_1_dynamic_memory_and_smart_pointers.md)
-- [引用计数机制](./note_12_1_dynamic_memory_and_smart_pointers.md)
+- [对象生命周期](./note_12_1_dynamic_memory_and_smart_pointers.md#id6)
+- [动态内存管理问题与智能指针简介](./note_12_1_dynamic_memory_and_smart_pointers.md#id7)
+- [shared_ptr 共享所有权](./note_12_1_dynamic_memory_and_smart_pointers.md#id8)
+- [make_shared 安全创建](./note_12_1_dynamic_memory_and_smart_pointers.md#id9)
+- [unique_ptr 独占所有权](./note_12_1_dynamic_memory_and_smart_pointers.md#id25)
+- [weak_ptr 弱引用](./note_12_1_dynamic_memory_and_smart_pointers.md#id28)
+- [引用计数机制](./note_12_1_dynamic_memory_and_smart_pointers.md#id10)
 - [循环引用问题](./note_12_1_dynamic_memory_and_smart_pointers.md)
 
 </details>
@@ -58,15 +73,28 @@ new/delete、new[]/delete[]、空悬指针
 <details>
 <summary><b>📖 文本查询程序示例</b></summary>
 
-- [程序设计](./note_12_3_using_the_library_a_text_query_program.md)
-- [数据结构](./note_12_3_using_the_library_a_text_query_program.md)
-- [使用 shared_ptr 共享数据](./note_12_3_using_the_library_a_text_query_program.md)
+- [程序设计](./note_12_3_using_the_library_a_text-query_program.md)
+- [数据结构](./note_12_3_using_the_library_a_text-query_program.md)
+- [使用 shared_ptr 共享数据](./note_12_3_using_the_library_a_text-query_program.md)
 
 </details>
 
 ---
 
 ## 💡 核心速查
+
+**原始指针与成员指针**
+
+| 写法 | 用途或区别 |
+| --- | --- |
+| `T* p` / `const T* p` | 访问对象 / 不能通过该指针修改对象 |
+| `sizeof(p)` / `sizeof(*p)` | 指针类型大小 / 所指类型大小，指针大小依赖实现 |
+| `R (*f)(Args...)` | 普通函数指针，通过 `f(args...)` 调用 |
+| `T C::* member` | 非静态数据成员指针，通过 `obj.*member` 或 `ptr->*member` 访问 |
+| `R (C::* action)(Args...)` | 普通非静态成员函数指针，通过 `(obj.*action)(args...)` 调用 |
+| `this` | 指向当前对象的指针表达式，静态成员函数中不可用 |
+
+> 💡 原始指针提供访问能力，智能指针表达所有权或观察关系；保存地址不意味着需要对它执行 `delete`。
 
 **shared_ptr（共享所有权）**
 ```cpp
@@ -179,4 +207,4 @@ alloc.deallocate(p, 100);
 
 ---
 
-> 🕊️ *"现代 C++ 中，裸指针几乎总是意味着资源管理问题。智能指针让内存管理自动化，是写出安全代码的关键。"*
+> 🕊️ *"分清指针访问与资源所有权，让对象生命周期管理清晰可控。"*

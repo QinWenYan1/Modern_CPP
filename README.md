@@ -35,7 +35,7 @@
 - [第 9 章：顺序容器](./Chapter09_sequential_containers/README.md) — `vector`, `deque`, `list`, `stack`, `queue`
 - [第 10 章：泛型算法](./Chapter10_generic_algorithms/README.md) — `sort`, `find`, 函数对象, `bind`, `Lambda`
 - [第 11 章：关联容器](./Chapter11_associative_containers/README.md) — `map`, `set`, `unordered_map`, 哈希表
-- [第 12 章：动态内存](./Chapter12_dynamic_memory/README.md) — `new`, `delete`, `shared_ptr`, `unique_ptr`
+- [第 12 章：动态内存](./Chapter12_dynamic_memory/README.md) — 原始指针, 成员指针, `this`, `new`, `delete`, `shared_ptr`, `unique_ptr`
 
 #### 第三部分：类和面向对象
 - [第 13 章：拷贝控制](./Chapter13_copy_control/README.md) — 拷贝构造, 移动语义, 右值引用, 三五法则

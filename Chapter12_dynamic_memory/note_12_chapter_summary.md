@@ -1,9 +1,15 @@
 # **C++ 动态内存管理 | 章节知识表**
 
->根据《C++ Primer》动态内存章节内容，按照指南要求整理的核心知识表如下：
+> 根据《C++ Primer》动态内存章节内容整理，并纳入 12.1 新增的原始指针知识点；详细说明与来源见 [12.1 动态内存与智能指针](./note_12_1_dynamic_memory_and_smart_pointers.md)。
 
 | 类别 | 概念 | 定义 | 关键点 |
 | :--- | :--- | :--- | :--- |
+| **🔗 原始指针基础** | **[原始指针 (Raw Pointer)](./note_12_1_dynamic_memory_and_smart_pointers.md#id1)** | 用于间接访问对象或调用函数的内置指针。 | • 指针自身与所指对象不同 <br>• 不自动管理所指对象生命周期 |
+| | **[指针大小](./note_12_1_dynamic_memory_and_smart_pointers.md#id1)** | `sizeof(p)` 返回指针类型的大小。 | • 与 `sizeof(*p)` 查询目标类型大小区分 <br>• 大小依赖实现，不能统一认定为 8 字节 |
+| | **[指向常量的指针 (Pointer to const)](./note_12_1_dynamic_memory_and_smart_pointers.md#id2)** | `const T*` 限制通过指针修改对象。 | • 可指向非常量对象 <br>• 与限制指针自身变化的 `T* const` 区分 |
+| | **[函数指针 (Function Pointer)](./note_12_1_dynamic_memory_and_smart_pointers.md#id3)** | 指定函数并支持间接调用。 | • 声明：`R (*f)(Args...)` <br>• 调用：`f(args...)` |
+| | **[成员指针 (Pointer to Member)](./note_12_1_dynamic_memory_and_smart_pointers.md#id4)** | 指定类的非静态数据成员或普通非静态成员函数。 | • 使用时结合对象：`.*` / `->*` <br>• 与指向具体成员对象的普通指针区分 |
+| | **[this 指针](./note_12_1_dynamic_memory_and_smart_pointers.md#id5)** | 在普通非静态成员函数中指向当前对象的指针表达式。 | • 普通非 const、非 volatile 成员函数中为 `C*`，对应 const 成员函数中为 `const C*` <br>• 不是 `C* const` 变量，静态成员函数没有 `this` |
 | **🔧 内存管理基础** | **new** | 从**自由空间（堆）**分配内存的表达式。 | • 分配单个对象：`new T` <br>• 分配数组：`new T[n]` <br>• 默认**默认初始化**，可提供初始化器 |
 | | **delete** | 释放由`new`分配的内存。 | • 释放单个对象：`delete p` <br>• 释放数组：`delete [] p` <br>• `p`可以为空或必须指向`new`分配的内存 |
 | | **自由空间 (Free Store) / 堆 (Heap)** | 程序用于保存**动态分配对象**的内存池。 | • 动态分配的对象在其中生存，直到被显式删除或程序终止。 |
@@ -25,4 +31,4 @@
 2.  **对比记忆**：对比`new/delete`与`allocator`、三种智能指针之间的核心差异。
 3.  **要点复习**：关注“关键点”列，快速回顾每个概念的核心特性和注意事项。
 
-**来源章节**：C++ 动态内存管理基础（涵盖原始内存操作与智能指针）。
+**来源章节**：C++ 动态内存管理基础（涵盖原始指针、成员指针、原始内存操作与智能指针）。
