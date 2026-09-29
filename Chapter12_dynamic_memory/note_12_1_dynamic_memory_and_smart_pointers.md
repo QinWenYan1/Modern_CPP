@@ -192,10 +192,14 @@ int main() {
 ## ✅ 知识点5: `this` 指针
 
 **理论**
-* **`this` 指针(this pointer)** 在普通非静态成员函数中指向调用该函数的当前对象，可以用 `this->member` 显式访问成员。
-* 当参数与数据成员同名时，可用 `this->` 明确表示数据成员。
-* 对类 `Counter` 而言，普通非 `const`、非 `volatile` 成员函数中的 `this` 类型为 `Counter*`；对应的 `const` 成员函数中为 `const Counter*`。
-* **`this` 是指针类型的纯右值(prvalue)表达式，不是一个可以重新赋值的指针变量**。不能因为 `this = ...` 不合法，就把其实际类型写成 `Counter* const`。参见[标准草案：this](https://eel.is/c++draft/expr.prim.this)。
+* **`this` 指针(this pointer)**:
+    -  在普通非静态成员函数中指向调用该函数的当前对象，可以用 `this->member` 显式访问成员
+* 当参数与数据成员同名时，可用 `this->` 明确表示数据成员
+* 对类 `Counter` 而言：
+    - 普通非 `const`、非 `volatile` 成员函数中的 `this` 类型为 `Counter*`
+    - 对应的 `const` 成员函数中为 `const Counter*`。
+* **`this` 是指针类型的纯右值(prvalue)表达式，不是一个可以重新赋值的指针变量**
+    - 不能因为 `this = ...` 不合法，就把其实际类型写成 `Counter* const`。参见[标准草案：this](https://eel.is/c++draft/expr.prim.this)。
 
 **示例代码**
 ```cpp
