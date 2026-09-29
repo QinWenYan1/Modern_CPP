@@ -51,8 +51,8 @@ new/delete、new[]/delete[]、空悬指针
 - [动态内存管理问题与智能指针简介](./note_12_1_dynamic_memory_and_smart_pointers.md#id7)
 - [shared_ptr 共享所有权](./note_12_1_dynamic_memory_and_smart_pointers.md#id8)
 - [make_shared 安全创建](./note_12_1_dynamic_memory_and_smart_pointers.md#id9)
-- [unique_ptr 独占所有权](./note_12_1_dynamic_memory_and_smart_pointers.md#id25)
-- [weak_ptr 弱引用](./note_12_1_dynamic_memory_and_smart_pointers.md#id28)
+- [unique_ptr 独占所有权](./note_12_1_dynamic_memory_and_smart_pointers.md#id26)
+- [weak_ptr 弱引用](./note_12_1_dynamic_memory_and_smart_pointers.md#id29)
 - [引用计数机制](./note_12_1_dynamic_memory_and_smart_pointers.md#id10)
 - [循环引用问题](./note_12_1_dynamic_memory_and_smart_pointers.md)
 
@@ -64,7 +64,8 @@ new/delete、new[]/delete[]、空悬指针
 - [new 表达式](./note_12_2_dynamic_arrays.md)
 - [delete 表达式](./note_12_2_dynamic_arrays.md)
 - [动态数组 new[]/delete[]](./note_12_2_dynamic_arrays.md)
-- [空悬指针](./note_12_2_dynamic_arrays.md)
+- [重置指针与悬挂指针](./note_12_1_dynamic_memory_and_smart_pointers.md#id18)
+- [野指针、悬空指针与空指针对比](./note_12_1_dynamic_memory_and_smart_pointers.md#id19)
 - [内存泄漏](./note_12_2_dynamic_arrays.md)
 - [allocator 类](./note_12_2_dynamic_arrays.md)
 

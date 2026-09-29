@@ -21,7 +21,9 @@
 | | **引用计数 (Reference Count)** | 追踪共享同一对象的用户数量的计数器。 | • `shared_ptr`使用它来决定何时可以安全删除内存。 |
 | | **删除器 (Deleter)** | 传递给智能指针的函数，用于替代`delete`来销毁其绑定的对象。 | • 允许自定义对象释放逻辑（如关闭文件、释放特定资源）。 |
 | **⚙️ 相关机制与概念** | **allocator** | 一个库类，用于分配**未构造的原始内存块**。 | • 提供比`new/delete`更底层、更灵活的内存控制，常与容器和算法配合使用。 |
-| | **悬垂指针 (Dangling Pointer)** | 指向曾经存在对象但该对象已被释放的内存的指针。 | • 使用悬垂指针是严重的程序错误，且** notoriously difficult to debug**。 |
+| | **[野指针 (Wild Pointer)](./note_12_1_dynamic_memory_and_smart_pointers.md#id19)** | 本处指没有确定的有效指向的指针，典型情况是未初始化的普通局部指针。 | • 使用前初始化 <br>• 不能先读取未初始化的指针来判断是否为空 |
+| | **[悬空／悬挂／悬垂指针 (Dangling Pointer)](./note_12_1_dynamic_memory_and_smart_pointers.md#id19)** | 原先所指对象的生命周期已经结束的指针。 | • 动态内存释放或局部对象离开作用域均可造成 <br>• 非空不代表有效，置空只影响当前指针 |
+| | **[空指针 (Null Pointer)](./note_12_1_dynamic_memory_and_smart_pointers.md#id19)** | 具有确定的空值，不指向对象或函数。 | • 可用 `nullptr` 初始化 <br>• 与未初始化指针不同，不能用于访问对象 |
 | | **析构函数 (Destructor)** | 当对象离开作用域或被`delete`时，用于清理对象的特殊成员函数。 | • 智能指针在释放内存时会调用其所管理对象的析构函数。 |
 | | **placement new** | 一种接受额外参数的`new`形式。 | • 例如：`new (nothrow) int`，指示`new`在分配失败时不抛出异常。 |
 
