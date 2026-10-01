@@ -180,7 +180,7 @@ r2 绑定（非常量）整数 i 是合法的。然而，不允许通过 r2 修�
   *cptr = 42;               // error: cannot assign to *cptr
   ```
 
-- 指针的类型必须与其所指对象的类型一致，但是有两个例外：
+- 指针的类型必须与其所指对象的类型一致，但是有两个例外（规则同样适用于引用）：
   - 基类指针，可以指向派生类对象（以后讲）
   - 另外一个例外是允许令一个**指向常量的指针**指向一个**非常量对象**（这节重点讲）：
 
@@ -222,7 +222,7 @@ const double *const pip = &pi; // pip is a const pointer to a const object
 
 ### 📝 顶层 const 和底层 const
 
-![alt text](image.png)
+![alt text](images/2.png)
 
 前面说过，**指针本身是对象**，它又可以指向另一个对象。
 所以我们得分别考虑两个“常量性”：
