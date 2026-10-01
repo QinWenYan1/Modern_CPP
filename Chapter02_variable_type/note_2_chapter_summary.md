@@ -122,7 +122,7 @@
 
 **preprocessor variable 预处理器变量**：由预处理器管理的变量。编译程序前，预处理器用其值替换每个预处理器变量。
 
-**reference 引用**：另一个对象的别名。与指针的集中对比见 [2.3 指针与引用的区别](./note_2_3_compound_types.md#id1)。
+**reference 引用**：另一个对象的别名。与指针的集中对比见 [2.3 指针与引用的区别](./note_2_3_compound_types.md#id22)。
 
 **reference to const 常量引用**：不能改变所引用对象值的引用。常量引用可以绑定到 `const` 对象、非 `const` 对象或表达式的结果。
 

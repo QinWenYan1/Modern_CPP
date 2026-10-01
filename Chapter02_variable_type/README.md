@@ -73,11 +73,11 @@
 <details>
 <summary><b>🔗 复合类型</b></summary>
 
-- [引用类型](./note_2_3_compound_types.md)
-- [指针基础](./note_2_3_compound_types.md)
+- [引用类型](./note_2_3_compound_types.md#id2)
+- [指针基础](./note_2_3_compound_types.md#id7)
 - [const 限定符](./note_2_3_compound_types.md)
 - [顶层 const 与底层 const](./note_2_3_compound_types.md)
-- [指针与引用的区别](./note_2_3_compound_types.md#id1)
+- [指针与引用的区别](./note_2_3_compound_types.md#id22)
 
 </details>
 
