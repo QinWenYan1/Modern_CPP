@@ -169,22 +169,24 @@ r2 绑定（非常量）整数 i 是合法的。然而，不允许通过 r2 修�
 
 ### 📝 指向 const 的指针
 
-- 与引用一样，也可以令指针指向常量或非常量。类似于常量引用，<b>指向常量的指针（pointer to const）</b>不能用于改变其所指对象的值。要想存储常量对象的地址，只能使用指向常量的指针：
+- 与引用一样，也可以令指针指向常量或非常量。
+- 类似于常量引用，<b>指向常量的指针（pointer to const）</b>不能用于改变其所指对象的值
+- 要想存储常量对象的地址，只能使用指向常量的指针：
 
-```cpp
-const double pi = 3.14;   // pi is const; its value may not be changed
-double *ptr = &pi;        // error: ptr is a plain pointer
-const double *cptr = &pi; // ok: cptr may point to a double that is const
-*cptr = 42;               // error: cannot assign to *cptr
-```
+  ```cpp
+  const double pi = 3.14;   // pi is const; its value may not be changed
+  double *ptr = &pi;        // error: ptr is a plain pointer
+  const double *cptr = &pi; // ok: cptr may point to a double that is const
+  *cptr = 42;               // error: cannot assign to *cptr
+  ```
 
 - 指针的类型必须与其所指对象的类型一致，但是有两个例外。
 - 第一个例外是允许令一个**指向常量的指针**指向一个**非常量对象**：
 
-```cpp
-double dval = 3.14;       // dval is a double; its value can be changed
-cptr = &dval;             // ok: but can't change dval through cptr
-```
+  ```cpp
+  double dval = 3.14;       // dval is a double; its value can be changed
+  cptr = &dval;             // ok: but can't change dval through cptr
+  ```
 
 - 指向常量的指针（`const` 指针）只是说**不能通过这个指针去改值**，但并不代表那个值本身不能被改。如果这个对象本身不是 `const`，你还是可以通过别的方法去修改它
 
