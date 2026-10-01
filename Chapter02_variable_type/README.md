@@ -16,7 +16,8 @@
 [→ 查看笔记](./note_2_2_variable.md)
 
 ### 2.3 复合类型 🔗
-引用、指针、`const` 限定与底层实现  
+引用、指针、复合声明与指针/引用对比
+
 [→ 查看笔记](./note_2_3_compound_types.md)
 
 ### 2.4 类型限定符 🛡️
@@ -76,7 +77,7 @@
 - [指针基础](./note_2_3_compound_types.md)
 - [const 限定符](./note_2_3_compound_types.md)
 - [顶层 const 与底层 const](./note_2_3_compound_types.md)
-- [指针与引用的区别](./note_2_3_compound_types.md)
+- [指针与引用的区别](./note_2_3_compound_types.md#id1)
 
 </details>
 
