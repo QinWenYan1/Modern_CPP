@@ -8,7 +8,8 @@
 ## 📑 章节导航
 
 ### 6.1 函数基础 🎯
-函数定义、调用、形参与实参、局部对象  
+函数定义、调用、形参与实参、局部对象、`extern "C"`
+
 [→ 查看笔记](./note_6_1_function_basics.md)
 
 ### 6.2 参数传递 📦
@@ -55,6 +56,7 @@
 - [形参与实参](./note_6_1_function_basics.md)
 - [局部对象与静态局部变量](./note_6_1_function_basics.md)
 - [函数声明](./note_6_1_function_basics.md)
+- [extern "C" 的作用](./note_6_1_function_basics.md#extern-c)
 
 </details>
 

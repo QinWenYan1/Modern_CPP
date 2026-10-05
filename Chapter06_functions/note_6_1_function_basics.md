@@ -1,6 +1,7 @@
 # 📘 6.1 函数基础 (Function Basics)
 
 > 来源说明：C++ Primer 第6章第1节 | 本节涵盖：函数的基本概念、定义、调用、参数传递、返回类型以及局部对象和函数声明
+> `extern "C"` 结合[小林 coding 对应问答](https://www.xiaolincoding.com/interview/cpp.html#extern-c-的作用)补充，规则参考[C++ 标准草案：语言链接](https://eel.is/c++draft/dcl.link)。
 
 ## 🧠 核心概念总览
 
@@ -14,6 +15,7 @@
 * [*局部静态对象*](#static-obj)：使用`static`声明，跨函数调用保持值
 * [*函数声明*](#func-decl)：提前声明函数接口，通常放在头文件中
 * [*单独编译*](#separate-comp)：将程序分成多个源文件分别编译，然后链接成可执行文件
+* [*extern "C" 的作用*](#extern-c)：指定 C 语言链接规则
 
 ---
 
@@ -58,6 +60,7 @@ graph TD
     H --> H1[编译过程]
     H --> H2[链接过程]
     H --> H3[优势与最佳实践]
+    H --> H4[C 语言链接]
 ```
 
 ---
@@ -429,6 +432,31 @@ g++ factMain.o fact.o -o main
 - 使用头文件保护（`#ifndef/#define/#endif`）防止多重包含
 - 确保所有使用函数的源文件包含相应的头文件
 - 定期检查声明和定义的一致性
+
+---
+
+<a id="extern-c"></a>
+## ✅ extern "C" 的作用
+
+**理论**
+
+- `extern "C"` 指定 **C 语言链接规则**，常用于 C++ 调用 C 函数。
+- 因为 C++ 支持函数重载，而 C 不支持。为了让链接器能区分同名函数，C++ 编译器会把参数类型等信息编码进符号名，这个过程叫 **name mangling（名字改编）**
+- 常见实现中，C 和 C++ 的函数符号命名规则不同，使用它可以避免由此导致的链接失败。
+![alt text](images/4.png)
+
+**示例**
+
+```cpp
+// 可能出现在 C++ 头文件<cstring>中链接指示
+extern "C" {
+    int strcmp(const char*, const char*);
+}
+```
+
+**注意点**
+
+> ⚠️ 它指定的是链接规则，不会让 C++ 代码改为按 C 语言编译。
 
 ---
 
