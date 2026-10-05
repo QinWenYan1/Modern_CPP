@@ -5,24 +5,6 @@
 
 ---
 
-## 🗺️ 知识体系图
-
-```mermaid
-graph TD
-    A[访问控制与封装] --> B[访问说明符]
-    A --> C[class vs struct]
-    C --> C1[C 与 C++ 的 struct、class 对比]
-    C --> C2[struct 与 union 的区别]
-    A --> D[封装的好处]
-    A --> E[友元机制]
-    
-    B --> B1[public]
-    B --> B2[private]
-    
-    E --> E1[友元声明]
-    E --> E2[友元可见性]
-    E --> E3[编译器差异]
-```
 
 ## 🧠 核心概念总览
 
