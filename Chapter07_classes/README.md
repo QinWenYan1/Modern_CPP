@@ -12,7 +12,8 @@
 [→ 查看笔记](./note_7_1_defining_abstract_data_type.md)
 
 ### 7.2 访问控制与封装 🔒
-访问说明符、友元、封装原则  
+访问说明符、C/C++ 的 struct 与 class 对比、友元、封装原则
+
 [→ 查看笔记](./note_7_2_access_control_and_encapsulation.md)
 
 ### 7.3 类的其他特性 ⭐
@@ -58,6 +59,7 @@
 <summary><b>🔒 访问控制与封装</b></summary>
 
 - [访问说明符 public/private](./note_7_2_access_control_and_encapsulation.md)
+- [C 的 struct 与 C++ 的 struct、class 对比](./note_7_2_access_control_and_encapsulation.md#id3)
 - [封装原则](./note_7_2_access_control_and_encapsulation.md)
 - [友元函数](./note_7_2_access_control_and_encapsulation.md)
 - [友元类](./note_7_2_access_control_and_encapsulation.md)
