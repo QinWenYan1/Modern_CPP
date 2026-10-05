@@ -106,6 +106,7 @@ public:
 - C 的 `struct` 是自定义数据类型，一些变量的集合，用于组合数据
 - C++ 的 `struct` 和 `class` 是抽象数据类型，都可以定义类，支持成员函数、构造函数、析构函数、继承等功能。
 - C++ 中，`struct` 与 `class` 的区别主要在于**默认成员访问权限和默认继承方式**。[标准规则](https://eel.is/c++draft/class.access)
+- 为什么吗有了 `class` 海保留了 `struct`? C++ 是在 C 语言的基础上发展起来的，为了与 C 语言兼容，C++ 中保留了 `struct`
 
 | 对比项 | C 的 `struct` | C++ 的 `struct` | C++ 的 `class` |
 |---|---|---|---|
