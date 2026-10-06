@@ -29,7 +29,7 @@
 [→ 查看笔记](./note_7_5_constructor_revisited.md)
 
 ### 7.6 类的静态成员 🌐
-静态成员定义、使用、静态成员函数、static 在 C 和 C++ 中的区别与作用
+静态成员定义、使用、静态成员函数、static 在 C 和 C++ 中的区别与作用、静态变量使用场景与默认初始化
 
 [→ 查看笔记](./note_7_6_static_class_member.md)
 
@@ -107,7 +107,7 @@
 - [静态数据成员](./note_7_6_static_class_members.md)
 - [静态成员函数](./note_7_6_static_class_members.md)
 - [静态成员定义与初始化](./note_7_6_static_class_members.md)
-- [静态成员使用场景](./note_7_6_static_class_members.md)
+- [静态变量的使用场景与默认初始化](./note_7_6_static_class_member.md#id12)
 - [static 在 C 和 C++ 中的区别与作用](./note_7_6_static_class_member.md#id11)
 
 </details>
