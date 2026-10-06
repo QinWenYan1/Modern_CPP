@@ -32,15 +32,26 @@
 
 - 我们可以用关键字 `const` 对变量的类型加以限定来做到这一点：
 
-```cpp
-const int bufSize = 512;    // input buffer size
-```
+  ```cpp
+  const int bufSize = 512;    // input buffer size
+  ```
 
 - 这样定义了 `bufSize` 是一个常量。任何试图对 `bufSize` 赋值的行为都将引发错误：
 
-```cpp
-bufSize = 512; // error: attempt to write to const object
-```
+  ```cpp
+  bufSize = 512; // error: attempt to write to const object
+  ```
+
+### 📝 const 作用及用法
+**作用：**
+1. const 修饰成员变量，定义成 const 常量，相较于宏常量`#define`，可进行类型检查，节省内存空间，提高了效率
+2. const 修饰函数参数，使得传递过来的函数参数的值不能改变
+3. **在成员变量中**:
+    - const 成员变量只能在类内声明、定义，在构造函数初始化列表中初始化
+    - const 成员变量只在某个对象的生存周期内是常量，对于整个类而言却是可变的，因为类可以创建多个对象，不同类的 const 成员变量的值是不同的。因此不能在类的声明中初始化 const 成员变量，类的对象还没有创建，编译器不知道他的值。
+4. **在成员函数中**:
+    - **不能修改成员变量的值**，除非有 mutable 修饰;只能访问成员变量
+    - **不能调用非常量成员函数**，以防修改成员变量的值
 
 ### 📝 初始化和 const
 
