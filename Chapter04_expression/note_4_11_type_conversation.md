@@ -21,7 +21,7 @@
 
 ---
 
-## ✅ 类型转换概述与分类 (Overview and Categories)
+## ✅ 类型转换概述与分类
 
 **定义 / 理论**
 *   当两种类型相关时，可以使用一种类型的对象或值代替另一种类型，这称为**类型转换**。
@@ -43,7 +43,7 @@ int ival = 3.541 + 3;
 
 ---
 
-## ✅ 隐式转换发生情况 (When implicit conversations occur)
+## ✅ 隐式转换发生情况
 
 编译器会在以下情况**自动转换**运算数
 
@@ -55,7 +55,7 @@ int ival = 3.541 + 3;
 *   函数调用也会有类型转换
 
 ---
-## ✅ 算术转换与整型提升 (Arithmetic Conversions and Integral Promotions)
+## ✅ 算术转换与整型提升
 
 **定义 / 理论**
 
@@ -64,13 +64,12 @@ int ival = 3.541 + 3;
     *   浮点数和整型混合运算时，整型都会转换为正确的浮点类
 
 *   **整型提升**：将较小的整型类型提升为更大的整型：
-    *   `bool`, `char`, `unsigned char`, `signed char`, `short`,`unsigned short` → `int` (**如果该类所有可能值能放到int里面**) 
-    否则，→ `unsigned int`
-    *   宽字符类型（如 `wchar_t`, `char16_t`, `char32_t`）→ 能完整容纳其所有可能值的最小标准整数类型
+    *   `bool`, `char`, `unsigned char`, `signed char`, `short`,`unsigned short` → `int` (**如果该类所有可能值能放到int里面**，否则 → `unsigned int`) 
+    *   **宽字符类型**（如 `wchar_t`, `char16_t`, `char32_t`）→ 能完整容纳其所有可能值的最小标准整数类型
         (`int`,`unsigned int`,`long`,`unsigned long`,`long long`, `unsigned long long`)
 
 ---
-## ✅ 无符号操作数的特殊情况 (Operands of Unsigned Type)
+## ✅ 无符号操作数的特殊情况 
 
 
 1.  **整型提升优先** (Integral Promotions First)
@@ -80,11 +79,11 @@ int ival = 3.541 + 3;
     *    如果提升后的类型符号相同（同为有符号或同为无符号），则**较小类型的操作数转换为较大的类型**
 
 3.  **符号不同** (Different Signedness) - 这是最关键的部分：
-    *    **无符号类型 >= 有符号类型**（指类型的大小/范围）：
+    * **无符号类型 >= 有符号类型**（指类型的大小/范围）：
         *   有符号操作数 → 无符号类型
         *   例如：`int` + `unsigned int` → `unsigned int`
         *   如果有符号操作数是一个负数，值的转换为unsigned表现在 **2_1章节primitive_type**描述
-    *    **有符号类型 > 无符号类型**（指类型的大小/范围）
+    * **有符号类型 > 无符号类型**（指类型的大小/范围）
         *   **如果** 无符号类型的所有值都能存放在有符号类型中则 **无符号 → 有符号**
         *   否则 **有符号类 → 无符号类**
         *   例如：在 `long` = `int` 的系统上，`long` + `unsigned int` → `unsigned int`
@@ -106,7 +105,7 @@ ival = dval;        // dval→int (截断)
 flag = dval;        // dval→bool (0→false, 非0→true)
 cval + fval;        // cval→int, 然后int→float
 sval + cval;        // sval和cval都→int
-cval + lval;        // cval→long
+cval + lval;        // cval→ int →long
 ival + uival;       // ival→unsigned int
 usval + ival;       // 根据相对大小转换
 uival + lval;       // 根据相对大小转换
@@ -199,6 +198,8 @@ double* dp = static_cast<double*>(p);       // 将void*转换回原始类型
 -   如果两者不匹配， 结果会未定义
 ---
 ## ✅ `void*` 指针
+- `void*` 是一种通用的指针类型，被称为"无类型指针"。它可以用来表示指向任何类型的指针，因为 `void*` 指针没有指定特定的数据类型
+
 
 ---
 ## ✅ `const_cast`
