@@ -12,10 +12,11 @@
 *   无符号操作数的特殊情况
 *   其他隐式转换（数组到指针、指针转换、布尔转换等）
 *   显式转换
-*   static_const
-*   const_const
-*   reinterpret_cast
-*   dynamic_cast
+*   `static_const`
+*   `void*` 指针
+*   `const_const`
+*   `reinterpret_cast`
+*   `dynamic_cast`
 *   旧式转型与使用建议
 
 ---
@@ -197,7 +198,9 @@ double* dp = static_cast<double*>(p);       // 将void*转换回原始类型
 -   然而我们必须确认**转换后的类就是实际原本的指针类**
 -   如果两者不匹配， 结果会未定义
 ---
+## ✅ `void*` 指针
 
+---
 ## ✅ `const_cast`
 -   用于只改变运算对象的**底层 const**，  用于改变对象类型是非法的
 -   使用其他转换形式去改变const是编译时报错的 
