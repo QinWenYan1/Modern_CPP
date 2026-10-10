@@ -95,7 +95,16 @@ sizeof(*p);       // 安全！返回 sizeof(int)。*p 不会被实际解引用�
 ## ✅ 知识点 4：使用 `sizeof` 计算数组元素个数 (Calculating Array Size)
 
 **定义 / 理论**
-因为 `sizeof(数组)` 返回整个数组的字节大小，而 `sizeof(*数组)` 或 `sizeof(数组[0])` 返回单个元素的字节大小，所以可以用除法求出数组的元素个数。
+- 因为 `sizeof(数组)` 返回整个数组的字节大小，而 `sizeof(*数组)` 或 `sizeof(数组[0])` 返回单个元素的字节大小，所以可以用除法求出数组的元素个数。
+
+**使用 `sizeof` 和 `strlen` 计算数组的区别**
+- `strlen` 是头文件 中的函数，`sizeof` 是 C++ 中的运算符
+- `strlen` 测量的是字符串的实际长度(其源代码如下)，以 `\0` 结束。而 `sizeof` 测量的是字符数组的分配大小
+![alt text](images/2.png)
+
+**sizeof 不可用于 `string`/`vector` 的大小计算**
+- `vector` 和 `string` 是类对象，`sizeof` 得不到它们存储的元素数量或字符串长度
+- 即使是使用了`.data()`，返回的也是指向底层数据的指针
 
 **教材示例代码**
 ```cpp
