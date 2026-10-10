@@ -385,6 +385,15 @@ item.combine(static_cast<Sales_data>(cin));  // 正确：显式转换
   - 没有基类(base class)和虚函数(vritual function)
 
 * 可以使用**花括号列表**初始化聚合类
+* 聚合类主要用来把相关数据放在一起，并允许直接用 `{}` 按成员顺序初始化，省去自己写构造函数
+    * 如它适合表示坐标、配置、简单记录这类以存储数据为主的对象：
+        ```cpp
+        struct Point {
+            int x;
+            int y;
+        };
+        Point p{3, 4};
+        ```
 
 **教材示例代码**
 ```cpp
