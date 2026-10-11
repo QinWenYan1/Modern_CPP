@@ -1,14 +1,15 @@
 # 📘 Chapter 15 - 面向对象程序设计 (Object-Oriented Programming)
 
 > 《C++ Primer》第 15 章学习笔记导航  
-> 本章涵盖：继承、虚函数、多态、抽象基类与访问控制
+> 本章涵盖：面向对象的概念与三大特性、虚函数、抽象基类与访问控制
 
 ---
 
 ## 📑 章节导航
 
 ### 15.1 OOP：概述 🎯
-面向对象基本概念、继承与动态绑定  
+面向对象概念、封装/继承/多态、数据抽象与动态绑定
+
 [→ 查看笔记](./note_15_1_an_overview.md)
 
 ### 15.2 定义基类和派生类 🏗️
@@ -58,10 +59,11 @@ public/protected/private 继承、using 声明改变访问权限
 <details>
 <summary><b>🎯 OOP 概述</b></summary>
 
-- [继承概念](./note_15_1_oop_an_overview.md)
-- [基类与派生类](./note_15_1_oop_an_overview.md)
-- [虚函数与动态绑定](./note_15_1_oop_an_overview.md)
-- [多态性](./note_15_1_oop_an_overview.md)
+- [面向对象的概念与三大特性（封装、继承、多态）](./note_15_1_an_overview.md#id1)
+- [继承概念](./note_15_1_an_overview.md#id2)
+- [基类与派生类](./note_15_1_an_overview.md#id2)
+- [虚函数与动态绑定](./note_15_1_an_overview.md#id9)
+- [多态性](./note_15_1_an_overview.md#id9)
 
 </details>
 
