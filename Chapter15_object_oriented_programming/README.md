@@ -59,11 +59,12 @@ public/protected/private 继承、using 声明改变访问权限
 <details>
 <summary><b>🎯 OOP 概述</b></summary>
 
-- [面向对象的概念与三大特性（封装、继承、多态）](./note_15_1_an_overview.md#id1)
-- [继承概念](./note_15_1_an_overview.md#id2)
-- [基类与派生类](./note_15_1_an_overview.md#id2)
-- [虚函数与动态绑定](./note_15_1_an_overview.md#id9)
-- [多态性](./note_15_1_an_overview.md#id9)
+- [面向对象的概念（类与对象）](./note_15_1_an_overview.md#id1)
+- [面向对象的三大特征（封装、继承、多态）](./note_15_1_an_overview.md#id2)
+- [继承概念](./note_15_1_an_overview.md#id3)
+- [基类与派生类](./note_15_1_an_overview.md#id3)
+- [虚函数与动态绑定](./note_15_1_an_overview.md#id10)
+- [多态性](./note_15_1_an_overview.md#id10)
 
 </details>
 
