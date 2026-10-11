@@ -45,7 +45,7 @@
 
 #### 第四部分：C++ 拓展
 - [第 17 章：并发与并行](./Chapter17_concurrency_parallelism/README.md) — `std::thread`, 互斥量, 期物, 条件变量, 原子操作与内存模型
-- [第 18 章：C++ 开发工具](./Chapter18_extension/README.md) — 静态库与动态库, CMake
+- [第 18 章：C++ 开发工具](./Chapter18_extension/README.md) — 编译流程, 静态库与动态库, CMake
 
 </details>
 

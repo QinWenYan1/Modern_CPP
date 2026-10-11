@@ -1,14 +1,15 @@
 # 📘 Chapter 18 - C++ 开发工具链 (Dev Toolchain)
 
 > C++ 工程实践必备工具  
-> 本章涵盖：静态库与动态库的创建与链接、CMake 构建系统生成器
+> 本章涵盖：C++ 编译的四个阶段、静态库与动态库的创建与链接、CMake 构建系统生成器
 
 ---
 
 ## 📑 章节导航
 
 ### 18.1 C++ 开发工具链 🛠️
-静态库与动态库的创建与链接、CMake 构建系统生成器  
+C++ 编译的四个阶段、静态库与动态库的创建与链接、CMake 构建系统生成器
+
 [→ 查看笔记](./note_18_1_dev_tools.md)
 
 ---
@@ -16,8 +17,9 @@
 ## 🎯 知识点索引
 
 <details>
-<summary><b>📦 静态库与动态库</b></summary>
+<summary><b>📦 编译流程、静态库与动态库</b></summary>
 
+- [C++ 编译的四个阶段（预处理 → 编译 → 汇编 → 链接）](./note_18_1_dev_tools.md#id1)
 - [静态库 `.a`（Linux）/ `.lib`（Windows）](./note_18_1_dev_tools.md)
 - [动态库 `.so`（Linux）/ `.dylib`（macOS）/ `.dll`（Windows）](./note_18_1_dev_tools.md)
 - [`ar` 与 `ranlib` 创建静态库](./note_18_1_dev_tools.md)
@@ -44,6 +46,10 @@
 ---
 
 ## 💡 核心速查
+
+**[编译流程](./note_18_1_dev_tools.md#id1)**
+
+预处理 → 编译 → 汇编 → 链接；`-E`、`-S`、`-c` 分别在前三个阶段结束后停止，`-c` 不进行链接。
 
 **静态库与动态库**
 ```bash
