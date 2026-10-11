@@ -29,7 +29,8 @@ public/protected/private 继承、using 声明改变访问权限
 [→ 查看笔记](./note_15_5_access_control_and_inheritance.md)
 
 ### 15.6 继承中的类作用域 🎯
-名字查找、名字隐藏、虚函数与作用域  
+名字查找、名字隐藏、虚函数与作用域、重载/重写/隐藏的区别
+
 [→ 查看笔记](./note_15_6_class_scope_under_inheritance.md)
 
 ### 15.7 构造函数与拷贝控制 🔄
@@ -116,10 +117,11 @@ public/protected/private 继承、using 声明改变访问权限
 <details>
 <summary><b>🎯 继承中的类作用域</b></summary>
 
-- [名字查找顺序](./note_15_6_scope_under_inheritance.md)
-- [名字隐藏/遮蔽](./note_15_6_scope_under_inheritance.md)
-- [使用作用域运算符访问被隐藏成员](./note_15_6_scope_under_inheritance.md)
-- [虚函数与作用域](./note_15_6_scope_under_inheritance.md)
+- [名字查找顺序](./note_15_6_class_scope_under_inheritance.md#id7)
+- [名字隐藏/遮蔽](./note_15_6_class_scope_under_inheritance.md#id8)
+- [使用作用域运算符访问被隐藏成员](./note_15_6_class_scope_under_inheritance.md#id5)
+- [虚函数与作用域](./note_15_6_class_scope_under_inheritance.md#id9)
+- [重载、重写与隐藏的区别](./note_15_6_class_scope_under_inheritance.md#id12)
 
 </details>
 

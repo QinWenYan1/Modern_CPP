@@ -46,7 +46,7 @@
 - [x] 掌握三种继承方式对成员访问级别的影响：public / protected / private
 - [x] 避免 **对象切片**：赋值/值传递会截断派生部分
 - [x] **纯虚函数** (`= 0`) 与 **抽象类** 的关系
-- [x] **覆盖 (override)** 与 **重载 (overload)** 的区别
+- [x] [**重载 (overloading)**、**重写 / 覆盖 (overriding)** 与 **隐藏 (name hiding)** 的区别](./note_15_6_class_scope_under_inheritance.md#id12)
 - [x] **虚析构函数** 在继承体系中的必要性
 
 ---
