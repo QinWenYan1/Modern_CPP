@@ -452,14 +452,18 @@ binops["%"](10, 5);    // 调用mod lambda
     * 然而 `function<int(int,int)>` 是个类，不是函数指针
     * 把一个函数塞进这个类里，要调用它的构造函数，而这个构造函数是模板：`template<class F> function(F)`
     * 编译器必须先回答一个问题："传进来的这个 F 是什么类型？"
-    * **卡就卡在这**：要回答"F 是什么类型"，得先知道 add 是哪一个函数；可 add 有两个，编译器不知道该选哪个
+    * **卡就卡在这**：要回答"F 是什么类型"，得先知道 add 是函数重载集里的哪一个函数；可 add 有两个，编译器不知道该选哪个
 * 解决方法：
   1. 使用函数指针明确指定版本：
+        - `int (*fp)(int,int) = add`：根据指针类型，先确定使用哪个 `add`。这一步不是模板推导。
+        - `function(fp)`：此时 `fp` 已经具有明确类型，编译器自然可以推导出 F。
      ```cpp
      int (*fp)(int,int) = add;   // 指向接受两个int的add版本
      binops.insert({"+", fp});
      ```
   2. 使用lambda来封装调用，通过lambda的参数类型确定调用哪个版本：
+        - 创建 lambda：编译器为 lambda 生成一个独立且明确的闭包类型；其内部根据 a、b 的 int 类型选择对应的 add。
+        - `function(lambda)`：编译器可以直接推导出 F 为该 lambda 的闭包类型
      ```cpp
      binops.insert({"+", [](int a, int b) { return add(a, b); } });
      ```
