@@ -135,8 +135,6 @@ double net_price(std::size_t) const override;
 virtual void function() = 0;
 ```
 
-
-
 ---
 
 <a id="id5"></a>
