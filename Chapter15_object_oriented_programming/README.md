@@ -88,6 +88,7 @@ public/protected/private 继承、using 声明改变访问权限
 - [动态绑定机制](./note_15_3_virtual_functions.md)
 - [虚函数调用](./note_15_3_virtual_functions.md)
 - [虚函数表（vtable）的结构与虚表指针（vptr）](./note_15_3_virtual_functions.md#id9)
+- [单继承和多继承的虚函数表结构](./note_15_3_virtual_functions.md#id10)
 - [纯虚函数 = 0](./note_15_3_virtual_functions.md)
 - [虚析构函数](./note_15_3_virtual_functions.md)
 - [回避虚函数机制](./note_15_3_virtual_functions.md)
