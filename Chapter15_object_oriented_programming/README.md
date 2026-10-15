@@ -17,7 +17,7 @@
 [→ 查看笔记](./note_15_2_defining_base_and_derived_classes.md)
 
 ### 15.3 虚函数 🔀
-动态绑定、虚函数调用、虚函数表（vtable）与虚表指针（vptr）、纯虚函数、抽象基类
+动态绑定、虚函数调用、虚函数表（vtable）与虚表指针（vptr）、单继承/多继承的虚表布局、纯虚函数、抽象基类
 
 [→ 查看笔记](./note_15_3_virtual_functions.md)
 

@@ -1,6 +1,6 @@
 # 📘 15.3 虚函数 (Virtual Functions)
 
-> 来源说明：C++ Primer 第15章第3节；补充：[小林coding：虚函数的实现机制是什么？](https://www.xiaolincoding.com/interview/cpp.html#虚函数的实现机制是什么) | 本节涵盖：虚函数的动态绑定机制、虚函数表与虚表指针、派生类重写规则、override与final说明符、默认参数处理及虚机制绕过
+> 来源说明：C++ Primer 第15章第3节；补充：[小林coding：虚函数的实现机制是什么？](https://www.xiaolincoding.com/interview/cpp.html#虚函数的实现机制是什么) | 本节涵盖：虚函数的动态绑定机制、虚函数表与虚表指针、单继承和多继承的虚表结构、派生类重写规则、override与final说明符、默认参数处理及虚机制绕过
 
 ---
 
@@ -224,6 +224,95 @@ ptr->foo();  // 调用 D::foo()
 <a id="id10"></a>
 ## ✅ 知识点10: 单继承和多继承的虚函数表结构
 
+**理论**
+
+派生类的虚表可以按照下面三条规则理解：
+
+* **未覆盖的虚函数**：保留基类版本的调用入口。
+* **覆盖的虚函数**：对应表项改为派生类版本的调用入口。
+* **新增的虚函数**：增加相应表项。[小林原题](https://www.xiaolincoding.com/interview/cpp.html#单继承和多继承的虚函数表结构是怎样的)
+
+以下以**普通非虚继承**为例，采用 Itanium ABI 的典型布局，只展示虚函数表项，省略类型信息、偏移量等内容。
+
+**一、单继承的虚函数表**
+
+```cpp
+struct Base {
+    virtual void f() {}
+    virtual void g() {}
+};
+
+struct Derived : Base {
+    void f() override {}  // 删除这一行，即为未覆盖 f 的情况
+    virtual void h() {}   // 新增虚函数
+};
+```
+
+在这个例子中，`Derived` 对象通常只有一个 `vptr`，指向派生类对应的虚表。
+
+| 表项 | `Base` 的虚表 | `Derived` 未覆盖 `f()` | `Derived` 覆盖 `f()` |
+|---|---|---|---|
+| `f()` | `Base::f` | `Base::f` | `Derived::f` |
+| `g()` | `Base::g` | `Base::g` | `Base::g` |
+| `h()` | 无 | `Derived::h` | `Derived::h` |
+
+* **没有覆盖时**：沿用基类函数，新虚函数 `h()` 的表项追加在后面。
+* **发生覆盖时**：派生类虚表中的 `f()` 表项指向 `Derived::f`，其他表项保持原来的对应关系。
+* **基类自己的虚表不变**，其中的 `f()` 仍然指向 `Base::f`。
+
+**二、多继承的虚函数表**
+
+```cpp
+struct Base1 {
+    virtual void f() {}
+    virtual void g1() {}
+};
+
+struct Base2 {
+    virtual void f() {}
+    virtual void g2() {}
+};
+
+struct Multi : Base1, Base2 {
+    void f() override {}  // 同时覆盖两个基类的 f()；删除此行即为未覆盖的情况
+    virtual void h() {}   // 新增虚函数
+};
+```
+
+`Multi` 对象包含 `Base1`、`Base2` 两个基类子对象。在这个例子的典型布局中，**各基类子对象分别拥有一个 `vptr`**：
+
+| 对象中的部分 | 指向的虚表 | 未覆盖 `f()` 时的函数表项 | 覆盖 `f()` 后的函数表项 |
+|---|---|---|---|
+| `Base1` 子对象的 `vptr` | 主虚表 | `Base1::f`、`Base1::g1`、`Multi::h` | `Multi::f`、`Base1::g1`、`Multi::h` |
+| `Base2` 子对象的 `vptr` | 次虚表 | `Base2::f`、`Base2::g2` | 调整后调用 `Multi::f` 的入口、`Base2::g2` |
+
+![alt text](images/8.png)
+
+* **没有覆盖时**：不同基类对应的表项仍使用各自的基类实现。
+* **发生覆盖时**：两个虚表中对应 `f()` 的表项，最终都调用 `Multi::f`。
+* **新增虚函数 `h()`**：在此布局中加入主虚表，不会在每张次虚表中都追加一份。[虚表布局规则](https://itanium-cxx-abi.github.io/cxx-abi/abi.html#vtable)
+
+**调用示例**
+
+```cpp
+Multi m;
+Base1* p1 = &m;
+Base2* p2 = &m;
+
+p1->f();   // Multi::f()
+p2->f();   // Multi::f()
+p1->g1();  // Base1::g1()
+p2->g2();  // Base2::g2()
+```
+
+`p1`、`p2` 指向同一个完整对象中的不同基类子对象。通过 `p2` 调用 `Multi::f()` 时，通常需要先调整 `this` 指针，再进入派生类函数，这段调整代码称为**调整桩（thunk）**。[调用机制参考](https://itanium-cxx-abi.github.io/cxx-abi/abi.html#vcall)
+
+**注意点**
+
+* ⚠️ 不能简单记成“继承几个类就有几个 `vptr`”：基类是否含虚函数、是否涉及虚继承等都会影响布局。
+* ⚠️ 表中的排列是特定 ABI 下的示意，C++ 标准没有统一规定虚表的具体布局。
+* 💡 **记忆技巧**：不覆盖，沿用基类；有覆盖，改变入口；多继承，分子对象找到对应虚表。
+
 ---
 
 <a id="id11"></a>
@@ -429,6 +518,7 @@ ptr->foo();  // 调用 D::foo()
 
 * **动态绑定条件**：`virtual` + `指针/引用` + `调用` = 运行时决议
 * **虚表与虚表指针**：`vtable` 保存调用入口，`vptr` 保存在对象内部；同类对象通常共享相应虚表，位置与数量由具体布局决定
+* **继承下的虚表**：未覆盖沿用基类入口，覆盖后使用派生类入口；多继承中可由不同基类子对象的 `vptr` 找到相应虚表，调用时可能调整 `this`
 * **override三要素**：同名、同参数、同const（返回类型协变例外）
 * **final作用**：禁止进一步派生类重写该虚函数
 * **默认参数原则**：基类和派生类的虚函数默认参数值应保持一致
