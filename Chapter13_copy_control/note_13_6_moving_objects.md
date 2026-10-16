@@ -127,6 +127,8 @@ int &&rr2 = rr1; // error: the expression rr1 is an lvalue!
     ![alt text](images/3.png)
 * `std::move` 函数原型
     ![alt text](images/4.png)
+* `remove_reference` 具体实现
+    ![alt text](images/5.png)
     
 
 **教材示例代码**
