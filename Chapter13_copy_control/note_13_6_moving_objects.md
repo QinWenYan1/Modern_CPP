@@ -294,8 +294,6 @@ StrVec &StrVec::operator=(StrVec &&rhs) noexcept
   - 若析构函数是删除的或不可访问，移动构造定义为删除。
   - 若类有 `const` 或引用成员，移动赋值定义为删除。
 
-
-**注意点**
 * ⚠️ **警告注意**：若类定义了任何移动操作，则**合成的拷贝构造函数和拷贝赋值运算符会被定义为删除**。
     * 这意味着**定义了移动操作的类必须也定义自己的拷贝操作**。
 
@@ -355,7 +353,6 @@ Foo x;
 Foo y(x);                  // copy constructor; x is an lvalue
 Foo z(std::move(x));       // copy constructor, because there is no move constructor
 ```
-**代码解析**
 * 因为移动构造函数不存在，而拷贝构造函数接受 `const Foo&`，右值引用`T&&`可以转换为 `const T&` 左值引用，所以拷贝构造函数是可行的。
 
 
@@ -366,8 +363,10 @@ Foo z(std::move(x));       // copy constructor, because there is no move constru
 ## ✅ 知识点13: 拷贝并交换赋值运算符与移动 
 **理论**
 * **核心主旨总结**：
-    * 定义了移动构造函数的 `HasPtr` 类，其**拷贝并交换赋值运算符**（参数为非引用类型）**同时充当拷贝赋值和移动赋值**：
-  - 参数 `rhs` 通过**拷贝初始化(copy initialization)** 获得：若实参是左值，调用拷贝构造函数；若实参是右值，调用移动构造函数。
+    * 定义了移动构造函数的 `HasPtr` 类，其**拷贝并交换赋值运算符**（参数为非引用类型）**同时充当拷贝赋值和移动赋值运算符**：
+  - 参数 `rhs` 通过**拷贝初始化(copy initialization)** 获得：
+    - 若实参是左值，调用拷贝构造函数
+    - 若实参是右值，调用移动构造函数
   - 赋值运算符体内通过 `swap` 交换 `*this` 与 `rhs`，`rhs` 析构时释放原左操作数的资源。
 * 这种设计避免重复编写两个赋值运算符。
 
@@ -380,17 +379,27 @@ Foo z(std::move(x));       // copy constructor, because there is no move constru
 ```cpp
 class HasPtr {
 public:
-    // added move constructor
-    HasPtr(HasPtr &&p) noexcept : ps(p.ps), i(p.i) { p.ps = 0; }
-    // assignment operator is both the move- and copy-assignment operator
+    HasPtr(const HasPtr& p) {
+        cout << "拷贝构造\n";
+        // 深拷贝资源
+    }
+
+    HasPtr(HasPtr&& p) noexcept {
+        cout << "移动构造\n";
+        // 接管资源
+    }
+
     HasPtr& operator=(HasPtr rhs)
         { swap(*this, rhs); return *this; }
     // other members as in § 13.2.1 (p. 511)
 };
 
 // usage:
-hp = hp2;                    // hp2 is lvalue → copy constructor copies hp2
-hp = std::move(hp2);         // move constructor moves hp2
+HasPtr a("Apple");
+HasPtr b("Banana");
+
+a = b;
+a = std::move(b);
 ```
 
 
