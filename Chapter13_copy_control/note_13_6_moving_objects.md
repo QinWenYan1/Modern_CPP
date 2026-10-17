@@ -129,6 +129,10 @@ int &&rr2 = rr1; // error: the expression rr1 is an lvalue!
     ![alt text](images/4.png)
 * `remove_reference` 具体实现
     ![alt text](images/5.png)
+* `std::move()` 实现原理（详见章节 16）
+    1. 利用引用折叠原理将右值经过 `T&&` 传递类型保持不变还是右值，而左值经过 `T&&` 变为普通的左值引用以保证模板可以传递任意实参，且保持类型不变
+    2. 然后通过 `remove_reference` 移除引用，得到具体的类型T
+    3. 最后通过 `static cast<>` 进行强制类型转换，返回 T&& 右值引用
     
 
 **教材示例代码**
