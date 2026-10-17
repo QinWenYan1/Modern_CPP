@@ -433,8 +433,7 @@ a = std::move(b);
 ## ✅ 知识点14: `Message` 类的移动操作 
 
 **理论**
-* **核心主旨总结**：
-    * `Message` 类（与 `Folder` 协同）应定义移动操作，避免拷贝 `contents` 和 `folders` 的开销。
+* `Message` 类（与 `Folder` 协同）应定义移动操作，避免拷贝 `contents` 和 `folders` 的开销。
 * **辅助函数 `move_Folders`**：
   - 使用 `std::move` 调用 `set` 的移动赋值，将 `m->folders` 移动到 `this->folders`。
   - 遍历 `folders`，对每个 `Folder`：**删除指向旧 `Message` 的指针**，**添加指向新 `Message` 的指针**。
