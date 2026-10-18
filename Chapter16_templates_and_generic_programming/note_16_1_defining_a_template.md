@@ -345,6 +345,40 @@ private:
     - **函数模板**通过函数调用使用，可以隐式推导或显式指定模板参数
     - **类模板**主要用于定义类型，通常通过 `vector<int>` 这样的形式使用，也可以在 C++17 起通过 CTAD 推导
 
+**全特化 vs 偏特化**
+- **全特化（Full Specialization）**：把模板参数全部确定下来
+    ```cpp
+    // ① 原始类模板
+    template<typename T>
+    class Box {
+    public:
+        void show() { cout << "普通模板"; }
+    };
+
+    // ② 全特化：专门处理 int
+    template<>
+    class Box<int> {
+    public:
+        void show() { cout << "int 专用版本"; }
+    };
+    ```
+- **偏特化（Partial Specialization）**：只限定一部分条件，仍然保留需要推导的模板参数
+    ```cpp
+    // ① 原始类模板
+    template<typename T>
+    class Box {
+    public:
+        void show() { cout << "普通模板"; }
+    };
+
+    // ② 偏特化：专门处理所有指针类型
+    template<typename T>
+    class Box<T*> {
+    public:
+        void show() { cout << "指针专用版本"; }
+    };
+    ```
+
 **注意点**
 * 📋 **模板参数使用**：在类模板定义中，使用模板参数 `T` 作为元素类型的占位符
 * 🔧 **类型定义**：使用 `typedef` 和 `typename` 定义相关类型
