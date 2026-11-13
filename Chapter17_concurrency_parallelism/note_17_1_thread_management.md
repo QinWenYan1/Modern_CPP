@@ -206,55 +206,134 @@ second.join();
 <a id="id6"></a>
 ## ✅ 知识点6: 线程析构、异常与 RAII 管理
 
-**线程管理必须覆盖正常返回和异常退出；只在函数末尾写一次 join，可能被提前退出绕过。**
+**如果要等待工作线程结束，就不能只在函数末尾写一次 `join()`，因为前面的代码可能抛出异常，让程序跳过它。**
 
 **理论**
 
-需要区分三个位置：
+- 假设主线程在函数 `f()` 中创建了工作线程，然后继续做自己的事情，最后调用 `join()` 等待工作线程结束s
 
-1. **构造阶段失败**：创建线程或保存参数时发生的异常在构造线程对象的线程中处理。
-2. **启动后，调用者抛出异常**：可能跳过原本计划执行的 `join()`；如果因此析构一个 joinable 对象，就会触发终止。
-3. **工作线程的入口函数有异常逃出**：调用 `std::terminate()`；这个异常不会自动在调用者的 `join()` 处重新抛出。
+- 如果主线程做事时抛出了异常，需要退出 `f()`，交给外层的 `catch` 处理，那么函数末尾的 `join()` 就会被跳过。退出函数时，局部对象 `t` 要被销毁；此时它仍然是 **joinable 状态**，其析构函数就会调用 `std::terminate()`，导致**整个程序终止**。
 
-**资源获取即初始化(RAII)** 可以将收尾责任绑定到对象生命周期：正常离开作用域，或异常向外层处理器传播并进行**栈展开(stack unwinding)** 时，管理对象的析构函数负责等待线程。
+- 解决办法有两种：
 
-**示例/实践（自拟作用域管理器）**
+    1. **手动处理**：正常执行时调用 `join()`；发生异常时，也先调用 `join()`，再把异常继续向外抛出
+    2. **让对象自动处理**：创建一个辅助对象，让它的析构函数调用 `join()`。正常离开函数，或者因为异常退出函数、前往外层 `catch` 时，都会销毁这个辅助对象，从而完成等待
+
+- 第二种做法运用了**资源获取即初始化(RAII，Resource Acquisition Is Initialization)**：
+    - 在这里，可以先理解为：**利用局部对象离开作用域时自动析构的特点，自动完成线程的等待** 
+    - 因异常退出作用域、前往异常处理代码时销毁局部对象的过程，叫作**栈展开(stack unwinding)**
+
+**示例/实践**
+
+- 下面两种写法共用这些定义：`func` 是工作线程执行的任务，通过引用修改 `some_local_state`
+- `do_something_in_current_thread()` 代表主线程自己的工作。这里的空函数只是占位，实际业务代码可能抛出异常
 
 ```cpp
 #include <thread>
 
-class join_on_exit {
-    std::thread& worker_;
-public:
-    explicit join_on_exit(std::thread& worker) noexcept : worker_(worker) {}
-    join_on_exit(const join_on_exit&) = delete;
-    join_on_exit& operator=(const join_on_exit&) = delete;
+void do_something(int& i)
+{
+    ++i;
+}
 
-    ~join_on_exit() {
-        if (worker_.joinable()) {
-            worker_.join();
+struct func
+{
+    int& i;
+
+    func(int& i_):i(i_){}
+
+    void operator()()
+    {
+        for(unsigned j=0;j<1000000;++j)
+        {
+            do_something(i);
         }
     }
 };
 
-void run() {
-    int value = 0;
-    std::thread worker([&value] { value = 1; });
-    join_on_exit guard(worker);
-    // 后续正常离开，或发生向外层处理器传播的异常时，guard 先等待线程。
+void do_something_in_current_thread()
+{}
+```
+
+**① 使用 `try/catch`，保证发生异常时也能等待线程**
+
+```cpp
+void f()
+{
+    int some_local_state=0;
+    func my_func(some_local_state);
+    std::thread t(my_func);
+    try
+    {
+        do_something_in_current_thread();
+    }
+    catch(...)
+    {
+        t.join();
+        throw;
+    }
+    t.join();
 }
 ```
 
-- 声明顺序是 `value → worker → guard`，析构顺序相反：先等待线程，再销毁线程对象和被引用的数据。
-- 这个示例要求管理器始终在创建者线程中使用，引用的线程对象仍有效，且没有其他地方并发操作或转移它。
-- 管理器只负责收尾，不负责捕获工作线程的异常，也不保证工作线程一定能够结束。
+- **没有异常**：主线程完成自己的工作，然后执行末尾的 `t.join()`。
+- **主线程自己的工作抛出异常**：进入 `catch(...)`，先执行 `t.join()` 等待工作线程结束，再用 `throw;` 把刚才捕获的异常继续向外抛出。
+- 这里的两个 `join()` 对应两种情况，**一次调用 `f()` 不会把它们都执行一遍**：发生异常时，`throw;` 已经让程序离开了 `f()`。
+
+**② 使用 `thread_guard`，在析构时自动等待线程**
+
+手动写 `try/catch` 容易遗漏，因此可以把等待操作放进一个类的析构函数：
+
+```cpp
+class thread_guard
+{
+    std::thread& t;
+public:
+    explicit thread_guard(std::thread& t_):
+        t(t_)
+    {}
+    ~thread_guard()
+    {
+        if(t.joinable())
+        {
+            t.join();
+        }
+    }
+    thread_guard(thread_guard const&)=delete;
+    thread_guard& operator=(thread_guard const&)=delete;
+};
+
+void f()
+{
+    int some_local_state=0;
+    func my_func(some_local_state);
+    std::thread t(my_func);
+    thread_guard g(t);
+
+    do_something_in_current_thread();
+}
+```
+
+- `thread_guard g(t)` 保存了对 `t` 的引用，**没有创建新线程，也没有复制线程对象**。
+- `g` 被销毁时，会先检查 `t.joinable()`，仍可等待时就调用 `t.join()`。
+- 两个 `=delete` 禁止复制这个辅助对象，避免复制出多个对象来管理同一个 `t`。
+
+**为什么这种写法能处理主线程中的异常？**
+
+局部对象按照创建顺序的逆序销毁。这里先创建 `t`，再创建 `g`，因此离开 `f()` 时：
+
+1. 先销毁 `g`，它的析构函数调用 `t.join()`，等待工作线程结束。
+2. 再销毁 `t`。此时已经完成 `join()`，不会因为仍然 joinable 而终止程序。
+3. 最后销毁 `my_func`，结束 `some_local_state` 的生命周期。工作线程已经结束，不会再访问这个局部变量。
+
+正常返回时如此；`do_something_in_current_thread()` 抛出异常、退出 `f()` 去往外层 `catch` 时，也按这个顺序处理。**因此，第二种写法的 `f()` 不需要再手动写 `join()`。**
 
 **注意点**
 
-> ⚠️ **警告**：析构中等待可能阻塞；如果工作线程等着管理者释放锁，仍可能死锁。`join()` 本身也可能抛异常，若从此析构函数逃出会触发终止；示例依赖合法的 join 使用条件，不是任意场景下的完整线程封装。
-> 💡 **理解技巧**：RAII 将收尾绑定到作用域，但不会自动解决线程之间的依赖关系。
-
-**来源**：[线程构造与未捕获异常][std-ctor]、[线程析构][std-dtor]、[栈展开][std-unwind]（标准正文已读）；Manning [第 2 章导览][ccia-ch2] §2.1.3、§2.3（非原著正文）。《Effective Modern C++》第 37 条仅定位到目录，未使用其正文。
+> ⚠️ **区分异常的位置**：上面的 `catch(...)` 处理的是主线程执行 `do_something_in_current_thread()` 时的异常。如果工作线程执行 `func::operator()` 时抛出异常，且一直没有在该线程中捕获，最终离开线程函数，就会调用 `std::terminate()`，终止整个程序。`join()` 和 `thread_guard` 都不会自动接收这个异常。
+> ⚠️ **创建失败是另一种情况**：如果创建线程或复制所需参数时抛出异常，这个异常发生在执行 `std::thread t(my_func)` 的主线程中，应在包住这行代码的 `try/catch` 中处理；此时 `t` 尚未成功构造，也没有执行到 `thread_guard g(t)`。
+> ⚠️ **使用条件**：`g` 保存的是引用，所以 `t` 必须比 `g` 活得更久，也不能被其他线程同时操作。`join()` 仍可能阻塞或因错误用法抛出异常；若异常从上述析构函数中抛出，程序仍会终止。例如工作线程等着主线程释放锁，而主线程又在等待工作线程，就可能死锁。
+> 💡 **理解技巧**：自动调用 `join()` 的是我们编写的 `thread_guard`，`std::thread` 自己的析构函数没有这个功能。辅助对象只负责等待，不会强制结束工作线程。
 
 ---
 
