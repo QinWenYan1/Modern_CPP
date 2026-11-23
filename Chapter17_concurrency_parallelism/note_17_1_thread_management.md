@@ -350,7 +350,7 @@ void f()
 | `std::this_thread::get_id()` | 获取当前执行线程的标识 |
 | `std::this_thread::sleep_for(duration)` | 让当前线程按相对时长休眠；调度等因素可能使返回更晚 |
 | `std::this_thread::sleep_until(time_point)` | 等待给定时刻；需要注意所用时钟及可能的时钟调整 |
-| `std::this_thread::yield()` | 给实现一次重新调度的机会，不保证另一个特定线程一定运行 |
+| `std::this_thread::yield()` | 给实现一次重新调度的机会，不保证另一个特定线程一定运行，是当前线程给调度器的一个提示：“我现在可以让其他线程先跑 |
 
 - 线程 ID 应作为标识使用，不应解释成有固定意义的数字。已终止且不再可 join 的线程，其 ID 值可以被后续线程复用。
 - **时间经过不构成线程同步**：让当前线程睡一会儿，既不能保证对方已经结束，也不能为共享数据访问建立同步关系。
@@ -373,7 +373,6 @@ void pause_briefly() {
 > ⚠️ **关键区分**：`joinable()` 不是“运行中”检查，线程 ID 也不是完成通知，`sleep/yield` 更不是同步工具。
 > 🔄 **知识关联**：旧笔记[知识点3](./note_17_1_thread_basics.md#id3)中的 `get_id()` 在此扩展，旧正文不变。
 
-**来源**：[thread 类与线程标识][std-class]、[this_thread][std-this]、[时间约定][std-timing]（标准正文已读）；Manning [第 2 章导览][ccia-ch2] §2.5（非原著正文）。
 
 ---
 
@@ -413,8 +412,6 @@ int main() {
 > 💡 **理解技巧**：把本来不必共享的状态分给各个线程，可以减少共享访问的需求。
 > 📋 **术语提醒**：TLS 是 thread-local storage（线程局部存储）的缩写。
 
-**来源**：[C++17 草案：线程存储期][std-tls]（正文已读）；本点为标准资料补充，不归称为已读取的 CCIA 或 EMC 正文内容。
-
 ---
 
 ## 🔑 核心要点总结
@@ -441,37 +438,3 @@ int main() {
 **记忆口诀**：启动即运行，关联看 joinable；引用看寿命，退出管收尾；休眠不作同步，私有不等于共享安全。
 
 ---
-
-## 📚 材料使用与旧稿对照
-
-**已读取的资料**：旧 17.1 全文；Manning 第 1、2 章公开导览；正文中链接的 C++17 工作草案条文。标准草案用于核对语言及库行为，导览用于定位主题和阅读线索。
-
-**未读取的原著正文**：《C++ Concurrency in Action》第 2 版正文入口返回 403；《Effective Modern C++》第 37 条只核对了[出版社目录][emc-toc]，本稿未使用该条正文，也未复制其中示例。不得将上述两项记为“原著正文已读”。
-
-| 本稿知识点 | CCIA 第 2 版导览定位 | 旧稿使用情况 | 正文依据 |
-|---|---|---|---|
-| 1 | §1.1—1.3 | 旧知识点1：背景参考，原文不变 | 出版社第 1 章导览；旧笔记 |
-| 2 | §1.4、§2.1.1 | 旧知识点2：概念参考；旧知识点4：代码原样复制到本稿 | 标准 thread 类与构造 |
-| 3 | §2.1.1、§2.2 | 新增，未改旧知识点 | 标准线程构造、ref/cref、lambda 捕获 |
-| 4 | §2.1.2、§2.1.4 | 旧知识点3：主题对照；旧警告尚未修改 | 标准线程成员与析构 |
-| 5 | §2.3 | 新增，未改旧知识点 | 标准线程类、移动构造与赋值 |
-| 6 | §2.1.3、§2.3 | 新增，未改旧知识点 | 标准异常、析构、栈展开；出版社导览的 RAII 思路 |
-| 7 | §2.5 | 旧知识点3：get_id 主题参考，原文不变 | 标准线程标识、this_thread、时间约定 |
-| 8 | 不作原著归属 | 新增，未改旧知识点 | 标准线程存储期 |
-
-本稿未修改旧笔记，旧稿的四个知识点及总结仍保存在[原文件](./note_17_1_thread_basics.md)。是否替换、迁移或修改旧文，须另行确认。
-
-[ccia-ch1]: https://livebook.manning.com/learn/c-plus-plus-concurrency-in-action-second-edition/chapter-1
-[ccia-ch2]: https://livebook.manning.com/learn/c-plus-plus-concurrency-in-action-second-edition/chapter-2
-[emc-toc]: https://www.oreilly.com/library/view/effective-modern-c/9781491908419/ch07.html
-[std-class]: https://timsong-cpp.github.io/cppwp/n4659/thread.thread.class
-[std-ctor]: https://timsong-cpp.github.io/cppwp/n4659/thread.thread.constr
-[std-members]: https://timsong-cpp.github.io/cppwp/n4659/thread.thread.member
-[std-dtor]: https://timsong-cpp.github.io/cppwp/n4659/thread.thread.destr
-[std-assign]: https://timsong-cpp.github.io/cppwp/n4659/thread.thread.assign
-[std-this]: https://timsong-cpp.github.io/cppwp/n4659/thread.thread.this
-[std-timing]: https://timsong-cpp.github.io/cppwp/n4659/thread.req.timing
-[std-tls]: https://timsong-cpp.github.io/cppwp/n4659/basic.stc.thread
-[std-ref]: https://timsong-cpp.github.io/cppwp/n4659/refwrap.helpers
-[std-capture]: https://timsong-cpp.github.io/cppwp/n4659/expr.prim.lambda.capture
-[std-unwind]: https://timsong-cpp.github.io/cppwp/n4659/except.ctor
