@@ -1,0 +1,336 @@
+# 📘 17.2 共享数据与互斥同步 (Sharing Data Between Threads)
+
+> 两个线程共用一张表时，查询、插入、删除各需要锁住哪几步？本节从一条双向链表讲起，用线程安全栈、交换两个对象和域名缓存说明锁的用法。
+
+---
+
+## 🧠 核心概念总览
+
+1. [*知识点1: 共享数据的竞态条件与数据竞争*](#id1)
+2. [*知识点2: 用 mutex 和 lock_guard 保护同一条链表*](#id2)
+3. [*知识点3: 锁外的指针和引用还能访问什么*](#id3)
+4. [*知识点4: 线程安全栈要把哪些操作合在一起*](#id4)
+5. [*知识点5: 用 std::lock 避免多把锁造成的死锁*](#id5)
+6. [*知识点6: unique_lock 与锁的粒度*](#id6)
+7. [*知识点7: 用 call_once 或局部 static 完成一次初始化*](#id7)
+8. [*知识点8: 读写锁与 const 查询函数*](#id8)
+9. [*知识点9: 递归互斥量与定时互斥量*](#id9)
+
+---
+
+<a id="id1"></a>
+## ✅ 知识点1: 共享数据的竞态条件与数据竞争
+
+**两个线程都只读一条已经建好的链表，可以一起读。一个线程开始删除节点，另一个线程再来遍历，情况就变了。**
+
+**理论**
+
+设一段双向链表为 `A ⇄ B ⇄ C`。删除 B 时，要让 A 的后继指向 C，还要让 C 的前驱指回 A。两处指针都改好，这次删除才算完成。如果遍历线程能在中途进来，沿两个方向就可能读到互相矛盾的连接。“相邻节点的前后指针能互相对应”，就是这条链表需要维持的**不变量（invariant）**。
+
+**示例/实践**
+
+| 概念 | 从例子理解 |
+|---|---|
+| **竞态条件（race condition）** | 两人抢最后一张电影票，谁先买到都合理，结果取决于线程操作的先后，若两人都拿到同一个座位，才是程序需要解决的错误 |
+| **数据竞争（data race）** | 两个线程访问同一内存位置，至少一方写、至少一次访问是非原子的，且两次访问间没有同步来保证先后。例如两个线程同时对同一个普通 `int` 执行 `count++`，会导致**未定义行为** |
+
+**注意点**
+
+> ⚠️ 数据竞争发生时，不能把结果预测成“最多少加一次”。而即使每次读写都加了锁，几步操作之间仍可能出现逻辑错误，见[知识点4](#id4)。
+
+---
+
+<a id="id2"></a>
+## ✅ 知识点2: 用 mutex 和 lock_guard 保护同一条链表
+
+**如果插入元素的线程已经锁住 `some_mutex`，查询线程也来锁它，就得等插入完成才能遍历链表。**
+
+**理论**
+
+**互斥量（mutex）** 同一时刻只允许一个线程独占。从取得锁到释放锁，这段访问共享数据的代码称为**临界区（critical section）**。手动调用 `lock()` 和 `unlock()` 容易漏掉异常退出的路径。**锁管理器 `std::lock_guard`** 在构造时加锁，在析构时解锁，这就是 RAII 在这里的用法。
+
+**示例/实践**
+
+```cpp
+#include <list>
+#include <mutex>
+#include <algorithm>
+
+std::list<int> some_list;    // 1
+std::mutex some_mutex;       // 2
+
+void add_to_list(int new_value)
+{
+    std::lock_guard<std::mutex> guard(some_mutex);    // 3
+    some_list.push_back(new_value);
+}
+
+bool list_contains(int value_to_find)
+{
+    std::lock_guard<std::mutex> guard(some_mutex);    // 4
+    return std::find(some_list.begin(),some_list.end(),value_to_find) != some_list.end();
+}
+```
+
+两次调用各有自己的局部变量 `guard`，但它们锁住的是**同一个** `some_mutex`。若插入元素时抛出异常，在退出函数、前往外层 `catch` 的过程中，`guard` 也会析构并解锁。查询返回的是一个 `bool`，调用者拿到结果时已经用完链表。
+
+**注意点**
+
+> 💡 旧笔记里两个线程分别把 `v` 设为 2 和 3，也是这个道理。两个 `join()` 都返回后可以读取 `v`，最终是 2 还是 3，取决于哪次赋值最后完成。加锁保证轮流写入，实际顺序可以有两种。
+
+---
+
+<a id="id3"></a>
+## ✅ 知识点3: 锁外的指针和引用还能访问什么
+
+**成员函数持锁期间把内部数据交给回调，回调可以记下它的地址。函数返回、锁释放以后，这个地址仍可能指向原对象。**
+
+**理论**
+
+把互斥量和数据都设为类的私有成员，可以让读写操作集中在类里。但如果返回内部对象的指针或引用，或让外部函数保存它，调用者就能绕过类里约定的加锁步骤。
+
+**示例/实践**
+
+书中的 `process_data` 在锁内调用外部提供的函数 `func(data)`。下面这个回调把收到的地址保存在外部变量 `unprotected` 里。
+
+```cpp
+void malicious_function(some_data& protected_data)
+{
+    unprotected=&protected_data;
+}
+```
+
+等 `process_data` 返回，调用者再执行 `unprotected->do_something()`，操作的仍然是同一份数据，这次却没有持锁。如果调用者只需要查询结果，可以像上一例那样返回一个值，让它在锁外使用自己的结果。
+
+**注意点**
+
+> ⚠️ 如果传出去的是 **`shared_ptr`（共享所有权指针）**，要看两个线程碰到的是哪一层。
+>
+> - **各自的指针副本**可以分别复制或销毁。引用计数的增减由库协调，对象在最后一位所有者放手前仍会存活。
+> - **同一个指针变量**若由一方替换、另一方读取，需要同步。
+> - **指向的对象**有自己的读写规则。两份指针指向同一个普通整数时，两边同时修改这个整数也需要同步。
+
+---
+
+<a id="id4"></a>
+## ✅ 知识点4: 线程安全栈要把哪些操作合在一起
+
+**调用者想做的是“取走栈顶的一个值”。如果接口要求调用者分别判空、读栈顶和弹出，任何两步之间都可能轮到另一个线程。**
+
+**理论**
+
+假设一个栈的每个成员函数内部都加锁。栈只剩一个元素时，A 调用 `empty()` 得到“非空”，B 随即把它弹出。A 再调用 `top()` 就是在访问空栈，对标准栈来说，这是未定义行为。即使栈里有两个元素，A、B 也可能先后读到同一个栈顶，再各自弹出一个元素。结果一个值被处理两遍，另一个值无人处理。
+
+**示例/实践**
+
+线程安全栈提供一个完成整件事的 `pop(T& value)`。这里 `data` 是内部栈，`value` 是调用者准备用来接收结果的变量。
+
+```cpp
+void pop(T& value)
+{
+    std::lock_guard<std::mutex> lock(m);
+    if(data.empty()) throw empty_stack();
+    value=data.top();
+    data.pop();
+}
+```
+
+从检查到弹出只加一次锁，其他线程只能在这次操作完成后再取。注意最后两行的顺序。如果给 `value` 赋值时抛出异常，`data.pop()` 还没执行，元素仍在栈里。
+
+**注意点**
+
+> 💡 判断容器能否并发访问，要看实际碰到的内存和容器结构。例如，固定大小的 `vector<int>` 不再增删元素，两个线程分别修改不同的已有整数，可以并行。`vector<bool>` 的不同元素可能共用一个机器字，因此写不同下标也可能发生冲突。若一方在增删元素，还要保护容器结构本身。
+
+---
+
+<a id="id5"></a>
+## ✅ 知识点5: 用 std::lock 避免多把锁造成的死锁
+
+**A 拿着第一把锁等第二把，B 拿着第二把锁等第一把，谁也走不到解锁那一行。这就是死锁（deadlock）。**
+
+**理论**
+
+交换两个对象的内容时，两份数据都需要保护。如果规定“先锁第一个参数”，一个线程调用 `swap(x, y)`，另一个调用 `swap(y, x)`，两者拿锁的顺序恰好相反。可以用 `std::lock` 一起取得所需的锁。如果必须分开取得，就要给**锁本身**规定顺序，让所有线程都遵守。
+
+**示例/实践**
+
+下面是交换函数的主体。每个对象的 `m` 保护自己的 `some_detail`。
+
+```cpp
+if(&lhs==&rhs)
+    return;
+std::lock(lhs.m,rhs.m);    // 1
+std::lock_guard<std::mutex> lock_a(lhs.m,std::adopt_lock);    // 2
+std::lock_guard<std::mutex> lock_b(rhs.m,std::adopt_lock);    // 3
+swap(lhs.some_detail,rhs.some_detail);
+```
+
+第一步排除和自身交换，以免重复锁住同一个普通互斥量。`std::lock` 避免在取得这两把锁的过程中发生死锁。`std::adopt_lock` 表示“当前线程已经取得锁”，两个 `lock_guard` 接手后在退出时各释放一把锁。
+
+**注意点**
+
+> ⚠️ 持锁调用未知的回调，或持锁 `join()` 一个还要来拿这把锁的线程，都可能造成新的循环等待。阅读卡住的代码时，要看线程在等谁。若双方一直重试、互相干扰，工作却没有进展，叫**活锁（livelock）**。若其他线程陆续完成，只有某个线程长期得不到机会，叫**饥饿（starvation）**。
+
+---
+
+<a id="id6"></a>
+## ✅ 知识点6: unique_lock 与锁的粒度
+
+**从共享数据里取出一份工作后，可以让其他线程继续取，等自己算完结果，再加锁写回。**
+
+**理论**
+
+`lock_guard` 适合整段代码都需要锁的情形。**`std::unique_lock`** 还记得自己当前是否持锁，所以能中途 `unlock()`、稍后再 `lock()`，析构时也只释放仍然持有的锁。使用 `std::defer_lock` 可以推迟加锁，使用移动操作可以在同一线程的不同作用域之间交接持锁责任。
+
+**示例/实践**
+
+```cpp
+void get_and_process_data()
+{
+    std::unique_lock<std::mutex> my_lock(the_mutex);
+    some_class data_to_process=get_next_data_chunk();
+    my_lock.unlock();    // 1 不要让锁住的互斥量越过process()函数的调用
+    result_type result=process(data_to_process);
+    my_lock.lock();      // 2 为了写入数据，对互斥量再次上锁
+    write_result(data_to_process,result);
+}
+```
+
+这里 `get_next_data_chunk()` 和 `write_result()` 访问共享数据，`process()` 处理的是当前线程拿到的那一份。**锁的粒度（lock granularity）** 指一把锁管多少数据。**持锁时间**取决于哪些操作在锁内执行。这个例子保留同一把锁，只把耗时的计算移到锁外。
+
+**注意点**
+
+> ⚠️ 重新加锁时，其他线程可能已经改过数据。例如分别锁住两个对象，各读出一个数后再比较。即使两个副本相等，也只能说明两次读到了同一个数，无法保证两个对象曾在同一时刻相等。
+>
+> 🔄 条件变量的 `std::condition_variable::wait` 也需要一个已经持锁的 `std::unique_lock<std::mutex>`。它在等待期间解锁，返回前重新加锁。
+
+---
+
+<a id="id7"></a>
+## ✅ 知识点7: 用 call_once 或局部 static 完成一次初始化
+
+**同一个连接既能发送又能接收，哪个操作先发生都可以，但两者都得等连接打开后再使用。**
+
+**理论**
+
+假设两个线程都先检查 `resource_ptr` 是否为空，再决定是否创建资源。若一个线程在锁外读这个指针，另一个线程正在锁内给它赋值，检查本身就发生了数据竞争。可用 **`std::once_flag`** 记录同一次初始化，所有入口都用这个标志调用 **`std::call_once`**。
+
+**示例/实践**
+
+连接对象的 `send_data` 和 `receive_data` 在实际收发前，都先执行下面这行代码。
+
+```cpp
+std::call_once(connection_init_flag,&X::open_connection,this); // 2
+```
+
+对同一个连接对象，第一个成功的调用打开连接。其他调用正常返回时，连接已经打开。如果打开连接的函数抛出异常，本次调用把异常传给调用者，之后使用同一标志的调用仍可尝试。
+
+如果需求只是“第一次进入函数时创建一个对象”，**函数内的局部静态变量（local static）** 更直接。下面的函数在每次调用时返回同一个实例。
+
+```cpp
+my_class& get_my_class_instance()
+{
+    static my_class instance; // 线程安全的初始化过程
+    return instance;
+}
+```
+
+**注意点**
+
+> ⚠️ 从 C++11 起，并发进入声明处的线程会等动态初始化完成。之后调用者拿到的是同一个 `instance`。如果多个线程还要修改它的数据，这些修改也需要同步。连接“只打开一次”和“多个线程可以同时收发”也是两个不同的保证。
+
+---
+
+<a id="id8"></a>
+## ✅ 知识点8: 读写锁与 const 查询函数
+
+**两个人同时查询域名缓存时可以一起读。有人要添加或更新记录时，就要等已有读者离开，再独占这张表。**
+
+**理论**
+
+**读写锁（reader-writer mutex）** 有共享和独占两种用法。多个线程可以同时持有共享锁。一个线程取得独占锁后，其他读者和写者都要等它解锁。中文版的 DNS 缓存使用 **Boost** 的 `boost::shared_mutex`，两个函数访问同一个缓存和同一个互斥量。
+
+**示例/实践**
+
+| 缓存中的操作 | 函数实际做什么 | 加锁方式 |
+|---|---|---|
+| `find_entry(domain) const` | 在表中查找记录，返回一份结果 | `boost::shared_lock<boost::shared_mutex>`，允许多个查询同时进行 |
+| `update_or_add_entry(...)` | 用 `entries[domain] = dns_details` 写入记录 | `std::lock_guard<boost::shared_mutex>`，更新期间独占缓存 |
+
+**怎样判断一个 `const` 查询能否同时执行？** 看函数体。Meyers 的多项式例子中，`roots() const` 第一次被调用时，要把算出的根写入 `rootVals`，再把 `rootsAreValid` 设为真。这两个成员声明为 `mutable`，所以函数确实可以写它们。两个线程同时首次查询，便可能一起写缓存。书中的做法是用同一把互斥量，保护检查标志、填写结果和复制返回值的全过程。
+
+**注意点**
+
+> 💡 DNS 查询能用共享锁，是因为它确实只读表项。如果某个“查询”还会填写缓存，选锁时就要把这次写入也算进去。
+
+---
+
+<a id="id9"></a>
+## ✅ 知识点9: 递归互斥量与定时互斥量
+
+**线程已经拿着一把锁，又要进入另一个同样会加锁的成员函数，该怎么办？如果线程只愿意等一段时间，又该用哪种锁？**
+
+**理论**
+
+| 需求 | 互斥量 | 使用条件 |
+|---|---|---|
+| 一次只让一个线程进入 | `std::mutex` | 当前线程已经持锁时，再对它调用 `lock()` 是未定义行为 |
+| 同一线程可以多次取得同一把锁 | **递归互斥量（recursive mutex）** `std::recursive_mutex` | 锁了三次就要解三次，其他线程才能取得这把锁 |
+| 尝试加锁，等到超时可以做别的事 | **定时互斥量（timed mutex）** `std::timed_mutex` | 调用 `try_lock_for` 或 `try_lock_until`，只有返回 `true` 才持有锁。实际返回时间可能比指定时间晚 |
+| 同时需要重复加锁和限时等待 | `std::recursive_timed_mutex` | 每次成功取得锁，仍要有一次对应的解锁 |
+
+**示例/实践**
+
+书中举了两个公开成员函数相互调用的例子。外层函数已经取得锁，内层函数又尝试取得同一把普通锁，此时程序就违反了 `std::mutex` 的使用条件。可以把共用逻辑提取成一个私有函数，约定调用前须持锁，再由两个公开函数各自负责加锁。
+
+**注意点**
+
+> 💡 递归锁解决的是**同一线程重复取得同一把锁**。若问题只是调用者不愿一直等，选能限时尝试的互斥量就够了。
+
+---
+
+## 🔑 核心要点总结
+
+1. 先找哪些数据必须一起改好，再决定临界区的范围。链表的前后指针、栈的判空与取值，都是分开操作会出错的例子。
+2. 读写双方要遵守同一套加锁规则。把内部引用传出锁外，或让查询函数在没有同步时写缓存，都会使这套规则失效。
+3. 同时需要多把锁时，要考虑所有线程的加锁顺序。耗时工作可以放到锁外的前提，是它已经能独立完成。
+4. 初始化、引用计数和对象内容分别需要什么保护，要逐一判断。对象已建好、仍活着，只解决了其中一部分问题。
+
+## 📌 考试速记版
+
+| 常见提问 | 回答要点 |
+|---|---|
+| `lock_guard` 和 `unique_lock` 怎么选？ | 从加锁到退出都要持锁，用前者。需要推迟加锁、中途解锁或移动持锁责任，用后者 |
+| `adopt_lock` 和 `defer_lock` 怎么区分？ | 前者接手当前线程已经取得的锁，后者创建管理器、把加锁推迟到以后 |
+| 每个成员函数都加锁，接口就线程安全了吗？ | 检查是否向外传出了内部数据，以及调用者是否必须分几次调用才能完成一件事 |
+| `call_once` 能保证什么？ | 同一标志最多有一次成功的初始化。对象后续的读写要另外判断 |
+| `const` 查询能直接用共享锁吗？ | 要确认它确实只读。第一次查询时写入缓存也算写 |
+| `shared_ptr` 的引用计数安全，能推出对象内容也安全吗？ | 引用计数保护共享所有权。对同一对象内容的并发读写，还要看对象自己的同步方式 |
+
+**记忆口诀**：同一数据同一锁，检查取值一起做。
+
+<!-- License for the accompanying book code excerpts by Anthony Williams.
+Boost Software License - Version 1.0 - August 17th, 2003
+
+Permission is hereby granted, free of charge, to any person or organization
+obtaining a copy of the software and accompanying documentation covered by
+this license (the "Software") to use, reproduce, display, distribute,
+execute, and transmit the Software, and to prepare derivative works of the
+Software, and to permit third-parties to whom the Software is furnished to
+do so, all subject to the following:
+
+The copyright notices in the Software and this entire statement, including
+the above license grant, this restriction and the following disclaimer,
+must be included in all copies of the Software, in whole or in part, and
+all derivative works of the Software, unless such copies or derivative
+works are solely in the form of machine-executable object code generated by
+a source language processor.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+-->
