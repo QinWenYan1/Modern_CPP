@@ -352,7 +352,10 @@ my_class& get_my_class_instance()
 | `find_entry(domain) const` | 在表中查找记录，返回一份结果 | `boost::shared_lock<boost::shared_mutex>`，允许多个查询同时进行 |
 | `update_or_add_entry(...)` | 用 `entries[domain] = dns_details` 写入记录 | `std::lock_guard<boost::shared_mutex>`，更新期间独占缓存 |
 
-`find_entry()` 可以用共享锁，因为它只读现成的表项。如果一个查询还要把现算的答案记下来呢？Meyers 的多项式例子中，`roots() const` 第一次被调用时，要把算出的根写入 `rootVals`，再把 `rootsAreValid` 设为真。这两个成员声明为 `mutable`，所以函数确实可以写它们。两个线程同时首次查询，便可能一起写缓存。书中的做法是用同一把互斥量，保护检查标志、填写结果和复制返回值的全过程。
+- `find_entry()` 可以用共享锁，因为它只读现成的表项。
+- 如果一个查询还要把现算的答案记下来呢？Meyers 的多项式例子中，`roots() const` 第一次被调用时，要把算出的根写入 `rootVals`，再把 `rootsAreValid` 设为真。
+- 这两个成员声明为 `mutable`，所以函数确实可以写它们。
+- 两个线程同时首次查询，便可能一起写缓存。书中的做法是用同一把互斥量，保护检查标志、填写结果和复制返回值的全过程。
 
 **注意点**
 
