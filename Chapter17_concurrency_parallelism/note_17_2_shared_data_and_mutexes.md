@@ -287,20 +287,33 @@ void get_and_process_data()
 
 **理论**
 
-**打开共享连接就是这样的一次初始化。** 发送线程和接收线程都可能先到，它们可以调用 `call_once` 并共用一个标志，等连接成功打开后再收发。
+- **打开共享连接就是这样的一次初始化。** 发送线程和接收线程都可能先到，它们可以调用 `call_once` 并共用一个标志，等连接成功打开后再收发。
 
-
-假设两个线程都先检查 `resource_ptr` 是否为空，再决定是否创建资源。若一个线程在锁外读这个指针，另一个线程正在锁内给它赋值，检查本身就发生了数据竞争。可用 **`std::once_flag`** 记录同一次初始化，所有入口都用这个标志调用 **`std::call_once`**。
+- 假设两个线程都先检查 `resource_ptr` 是否为空，再决定是否创建资源。若一个线程在锁外读这个指针，另一个线程正在锁内给它赋值，检查本身就发生了数据竞争。
+- 可用 **`std::once_flag`** 记录同一次初始化，所有入口都用这个标志调用 **`std::call_once`**。
 
 **示例/实践**
 
 连接对象的 `send_data` 和 `receive_data` 在实际收发前，都先执行下面这行代码。
 
 ```cpp
-std::call_once(connection_init_flag,&X::open_connection,this); // 2
-```
+std::once_flag flag;  // 两个线程共用这个标记
 
-对同一个连接对象，第一个成功的调用打开连接。其他调用正常返回时，连接已经打开。如果打开连接的函数抛出异常，本次调用把异常传给调用者，之后使用同一标志的调用仍可尝试。
+void send_data() {
+    std::call_once(flag, open_connection);
+    send_message();
+}
+
+void receive_data() {
+    std::call_once(flag, open_connection);
+    receive_message();
+}
+```
+- 假设发送线程先到，它就执行 `open_connection()`。
+- 如果接收线程这时也到了，它会等连接打开，再往下执行 `receive_message()`。
+- 以后两个线程再走到 `call_once`，都会直接通过。
+- 所以，只执行一次的是 `open_connection()`。
+- `send_message()` 和 `receive_message()` 仍然每次都会执行，它们之间也不会因为 `call_once` 而互斥。这里的“一次”由同一个 `flag` 记录，如果两个线程各用一个 `flag`，连接就可能被打开两次
 
 如果需求只是“第一次进入函数时创建一个对象”，**函数内的局部静态变量（local static）** 更直接。下面的函数在每次调用时返回同一个实例。
 
