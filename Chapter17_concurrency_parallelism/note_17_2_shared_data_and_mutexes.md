@@ -100,7 +100,7 @@ bool list_contains(int value_to_find)
 
 **示例/实践**
 
-书中的 `process_data` 在锁内调用外部提供的函数 `func(data)`。下面这个回调把收到的地址保存在外部变量 `unprotected` 里。
+书中的 `process_data` 在锁内调用外部提供的函数 `func(data)`。下面这个回调把收到的地址保存在外部变量 `unprotected` 里：
 
 ```cpp
 void malicious_function(some_data& protected_data)
@@ -156,7 +156,7 @@ sequenceDiagram
 
 **示例/实践**
 
-下面的 `pop(T& value)` 就是这个领取接口。`data` 是内部栈，`value` 是调用者用来接收任务编号的变量。
+下面的 `pop(T& value)` 就是这个领取接口。`data` 是内部栈，`value` 是调用者用来接收任务编号的变量：
 
 ```cpp
 void pop(T& value)
@@ -189,7 +189,7 @@ void pop(T& value)
 
 **示例/实践**
 
-下面是交换函数的主体。每个对象的 `m` 保护自己的 `some_detail`。
+下面是交换函数的主体。每个对象的 `m` 保护自己的 `some_detail`：
 
 ```cpp
 if(&lhs==&rhs)
@@ -199,8 +199,9 @@ std::lock_guard<std::mutex> lock_a(lhs.m,std::adopt_lock);    // 2
 std::lock_guard<std::mutex> lock_b(rhs.m,std::adopt_lock);    // 3
 swap(lhs.some_detail,rhs.some_detail);
 ```
-
-第一步排除和自身交换，以免重复锁住同一个普通互斥量。`std::lock` 避免在取得这两把锁的过程中发生死锁。`std::adopt_lock` 表示“当前线程已经取得锁”，两个 `lock_guard` 接手后在退出时各释放一把锁。
+- 第一步排除和自身交换，以免重复锁住同一个普通互斥量。
+- `std::lock` 避免在取得这两把锁的过程中发生死锁。
+- `std::adopt_lock` 表示“当前线程已经取得锁”，两个 `lock_guard` 构造时跳过 `lock()`，析构时照常调用 `unlock()`。
 
 **注意点**
 
