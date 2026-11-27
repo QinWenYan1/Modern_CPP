@@ -237,6 +237,12 @@ swap(lhs.some_detail,rhs.some_detail);
 
 - `lock_guard` 适合整段代码都需要锁的情形- **`std::unique_lock`** 还记得自己当前是否持锁，所以能中途 `unlock()`、稍后再 `lock()`，析构时也只释放仍然持有的锁。
 - 使用 `std::defer_lock` 可以推迟加锁，使用移动操作可以在同一线程的不同作用域之间交接持锁责任。
+    ```cpp
+    std::unique_lock<std::mutex> lk(m, std::defer_lock);
+    // 此时 lk 关联了 m，但还没加锁，可以先做其他工作
+    ```
+
+
 
 **示例/实践**
 
@@ -252,7 +258,9 @@ void get_and_process_data()
 }
 ```
 
-这里 `get_next_data_chunk()` 和 `write_result()` 访问共享数据，`process()` 处理的是当前线程拿到的那一份。**锁的粒度（lock granularity）** 指一把锁管多少数据。**持锁时间**取决于哪些操作在锁内执行。这个例子保留同一把锁，只把耗时的计算移到锁外。
+- 这里 `get_next_data_chunk()` 和 `write_result()` 访问共享数据，`process()` 处理的是当前线程拿到的那一份。
+- **锁的粒度（lock granularity）** 指一把锁管多少数据。**持锁时间**取决于哪些操作在锁内执行。
+- 这个例子保留同一把锁，只把耗时的计算移到锁外。
 
 **注意点**
 
