@@ -344,6 +344,7 @@ my_class& get_my_class_instance()
 - **读写锁（reader-writer mutex）** 有共享和独占两种用法。多个线程可以同时持有共享锁。
 - 一个线程取得独占锁后，其他读者和写者都要等它解锁。
 - 中文版的 DNS 缓存使用 **Boost** 的 `boost::shared_mutex`，两个函数访问同一个缓存和同一个互斥量。
+- 使用 `boost::shared_mutex` 是因为 C++ 11 还没有`std::shared_mutex`
 
 **示例/实践**
 
@@ -353,10 +354,6 @@ my_class& get_my_class_instance()
 | `update_or_add_entry(...)` | 用 `entries[domain] = dns_details` 写入记录 | `std::lock_guard<boost::shared_mutex>`，更新期间独占缓存 |
 
 - `find_entry()` 可以用共享锁，因为它只读现成的表项。
-- 如果一个查询还要把现算的答案记下来呢？Meyers 的多项式例子中，`roots() const` 第一次被调用时，要把算出的根写入 `rootVals`，再把 `rootsAreValid` 设为真。
-- 这两个成员声明为 `mutable`，所以函数确实可以写它们。
-- 两个线程同时首次查询，便可能一起写缓存。
-- 书中的做法是用同一把互斥量，保护检查标志、填写结果和复制返回值的全过程。
 
 **注意点**
 
@@ -369,9 +366,10 @@ my_class& get_my_class_instance()
 
 给域名缓存选读写锁，考虑的是**不同线程能否一起访问**。选锁也要看调用者自身的需求。有时，同一线程会再次申请自己持有的锁。有时，线程只愿意等一小段时间，超时就要去做别的事。
 
+**理论**
+
 **同一线程需要重复加锁时，可用递归互斥量。希望等待超时后转去做别的事，可用定时互斥量。**
 
-**理论**
 
 | 需求 | 互斥量 | 使用条件 |
 |---|---|---|
