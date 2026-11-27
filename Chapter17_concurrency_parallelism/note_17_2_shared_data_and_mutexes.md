@@ -291,6 +291,8 @@ void get_and_process_data()
 
 - 假设两个线程都先检查 `resource_ptr` 是否为空，再决定是否创建资源。若一个线程在锁外读这个指针，另一个线程正在锁内给它赋值，检查本身就发生了数据竞争。
 - 可用 **`std::once_flag`** 记录同一次初始化，所有入口都用这个标志调用 **`std::call_once`**。
+    - 多个线程同时调用 `std::call_once(flag, open_connection)` 是安全的。
+    - 你不需要在 `open_connection()` 里加锁修改 `flag`，这个标记由 `call_once` 自己管理。
 
 **示例/实践**
 
