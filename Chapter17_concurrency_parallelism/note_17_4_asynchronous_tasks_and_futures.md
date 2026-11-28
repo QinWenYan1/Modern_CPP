@@ -206,13 +206,26 @@ B 取完就释放队列锁，是因为任务已经在 B 自己手里了。即使
 <a id="id5"></a>
 ## ✅ 知识点5: 用 promise 写入结果，用 future 取回结果
 
-上一点里，函数执行 `return 7;`，`packaged_task` 就会替我们保存这个 `7`。现在直接用 `std::thread` 让工作线程计算 `3 + 4`。`join()` 可以等它算完，主线程又该从哪里拿到这个数？
+上一点的 `packaged_task` 会自动保存函数的返回值。主线程可以先用 `join()` 等执行任务的线程结束，再从任务的 `future` 里取出这个值。那如果工作函数还要继续运行，却已经有一个结果可以交给主线程了，怎样让主线程提前拿到它？
 
 **理论**
 
-**工作线程用 `promise` 写入答案，主线程用配对的 `future` 取回答案。** 创建 `std::promise<int>` 时，它会准备一个存放整数的位置，起初里面还没有值。调用它的 `get_future()`，得到的 `future` 就能读取这个位置。两者共用的这份数据叫**共享状态（shared state）**。
+- **用 `promise`，工作线程可以在结果准备好的那一行调用 `set_value()`，把值交给主线程，然后继续工作。** 
+- 主线程事先用这个 `promise` 的 `get_future()` 拿到配对的 `future`。两者共用一个存放结果的位置，叫**共享状态（shared state）**。工作线程一旦填好，主线程的 `get()` 就能取到这个值。
 
 **示例/实践**
+
+同样是计算 `3 + 4`，先看沿用上一点的 `packaged_task` 时，主线程在 `main()` 里怎么取结果。
+
+```cpp
+std::packaged_task<int()> task([] { return 3 + 4; });
+auto result = task.get_future();       // 主线程先留下取结果的 future
+std::thread worker(std::move(task));
+worker.join();                         // 等执行任务的线程结束
+int sum = result.get();                // 取出任务已经保存的 7
+```
+
+也可以直接把普通的 lambda 交给 `std::thread`。如果里面只写 `return 3 + 4;`，`std::thread` 会丢弃这个返回值，`join()` 本身也返回 `void`。下面让这个 lambda 用 `sum_promise` 把同一个答案传给主线程。
 
 ```cpp
 #include <future>
@@ -246,7 +259,7 @@ int main() {
 
 **注意点**
 
-> 💡 换成发包也是同样的用法。发包线程完成本地发送后调用 `set_value(true)`，主线程通过 `get()` 得知本地已发完。对端是否收到了包，要看对端的回复。
+> 💡 发包线程要连续处理很多个包。如果用一个 `packaged_task` 包装整个发包循环，它会在循环返回时才保存结果。给每个包配一个 `promise`，线程就可以在第一个包本地发送完成时对它调用 `set_value(true)`，随后继续发第二个包。此时等待第一个包的主线程就能读到 `true`。要确认对端收到，还需要对端回复。
 
 > ⚠️ 同一个 `promise` 只能成功调用一次 `get_future()`，也只能成功填入一次结果。下一次计算要单独传回结果，就为它创建新的一对。
 
