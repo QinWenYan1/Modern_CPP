@@ -211,7 +211,8 @@ B 取完就释放队列锁，是因为任务已经在 B 自己手里了。即使
 **理论**
 
 - **用 `promise`，工作线程可以在结果准备好的那一行调用 `set_value()`，把值交给主线程，然后继续工作。** 
-- 主线程事先用这个 `promise` 的 `get_future()` 拿到配对的 `future`。两者共用一个存放结果的位置，叫**共享状态（shared state）**。工作线程一旦填好，主线程的 `get()` 就能取到这个值。
+- 主线程事先用这个 `promise` 的 `get_future()` 拿到配对的 `future`。两者共用一个存放结果的位置，叫**共享状态（shared state）**。
+- 工作线程一旦填好，主线程的 `get()` 就能取到这个值。
 
 **示例/实践**
 
@@ -225,13 +226,11 @@ worker.join();                         // 等执行任务的线程结束
 int sum = result.get();                // 取出任务已经保存的 7
 ```
 
-也可以直接把普通的 lambda 交给 `std::thread`。如果里面只写 `return 3 + 4;`，`std::thread` 会丢弃这个返回值，`join()` 本身也返回 `void`。下面让这个 lambda 用 `sum_promise` 把同一个答案传给主线程。
+- 也可以直接把普通的 lambda 交给 `std::thread`。
+- 如果里面只写 `return 3 + 4;`，`std::thread` 会丢弃这个返回值，`join()` 本身也返回 `void`。
+- 下面让这个 lambda 用 `sum_promise` 把同一个答案传给主线程。
 
 ```cpp
-#include <future>
-#include <iostream>
-#include <thread>
-
 int main() {
     std::promise<int> sum_promise;
     std::future<int> sum_future = sum_promise.get_future();
@@ -246,7 +245,7 @@ int main() {
 }
 ```
 
-如果主线程先走到 `sum_future.get()`，它会在这一行等。工作线程一调用 `sum_promise.set_value(3 + 4)`，主线程就能取到 `7`。如果工作线程先写好，`get()` 就直接返回 `7`。最后的 `join()` 负责等工作线程退出，这时主线程已经打印了答案。
+- 如果主线程先走到 `sum_future.get()`，它会在这一行等。工作线程一调用 `sum_promise.set_value(3 + 4)`，主线程就能取到 `7`。如果工作线程先写好，`get()` 就直接返回 `7`。最后的 `join()` 负责等工作线程退出，这时主线程已经打印了答案。
 
 
 **`async`、`packaged_task` 和 `promise` 对照表**

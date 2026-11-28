@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 任务交接
+
+从[仓库协作入口与技能索引](AGENTS.md#agent-handoff)开始，读取[项目现状与授权边界](agent/STATE.md)及[当前计划](agent/PLAN.md)。相关问题查[问题账本](agent/AUDIT.md)，第 17 章逐点材料查[来源对照](agent/sources/chapter17.md)。项目技能由入口按任务导航并显式读取。
+
 ---
 
 ## Repository purpose
@@ -11,7 +15,7 @@ This is a **C++ learning notes repository** — structured Markdown study notes 
 Content has two sources:
 
 - **Chapters 1–16 (Parts 1–3: 基础 / 标准库 / 类和面向对象)** — notes for *C++ Primer (5th Edition)*, complete.
-- **Chapter 17+ (Part 4: C++ 拓展)** — extension content beyond the textbook. Chapter 17 (`Chapter17_concurrency_parallelism/`) is 并发与并行, sourced from *现代 C++ 教程：高速上手 C++* (ch. 7, the PDF in the repo root); Chapter 18 (`Chapter18_extension/`) is the dev toolchain (static/dynamic libraries, CMake); *Effective Modern C++* is planned. These notes are self-curated from courses/videos/books, not tied to the Primer's section numbering.
+- **第 17 章及以后（C++ 拓展）**。原第 17 章笔记参考《现代 C++ 教程：高速上手 C++》第 7 章。并发笔记的重组使用[当前已授权材料](agent/STATE.md)。第 18 章介绍静态库、动态库和 CMake。
 
 ## Content organization
 
@@ -24,7 +28,7 @@ ChapterNN_topic/
     └── exercise_N_M.cpp               # Naming: exercise_<chapter>_<number>.cpp
 ```
 
-- Chapters 1–16 are complete. Chapter 17 (`Chapter17_concurrency_parallelism/`, 并发与并行) is complete. Chapter 18 (`Chapter18_extension/`) is in progress — notes are being built incrementally from user-provided screenshots.
+- 第 1–16 章的基础笔记已完成。第 17 章原三篇和重组稿并存，交接位置见[项目状态](agent/STATE.md)。第 18 章按材料分步整理。
 - Each chapter README links to its notes and to the previous/next chapter and root README.
 - Derive each section note's filename from its H1 using `note_<chapter>_<section>_<full_english_title>.md`. Keep every word of the parenthesized English title in its original order and spelling, lowercase it, and use underscores between words. For example, `17.4 异步任务与结果传递 (Asynchronous Tasks and Futures)` maps to `note_17_4_asynchronous_tasks_and_futures.md`. Check the match before delivery.
 - Exercise filenames use the pattern `exercise_<chapter>_<number>.cpp`; grouped exercises use ranges (e.g., `exercise_12_6-7.cpp`).
