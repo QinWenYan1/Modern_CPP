@@ -128,7 +128,7 @@ if(f.wait_for(std::chrono::milliseconds(35))==std::future_status::ready)
 
 **注意点**
 
-> 💡 `std::async` 返回的是 `std::future<int> f`。只想等结果就绪，可以调用 `f.wait()`，这就是旧稿把 `wait()` 称为“屏障”的意思。要取结果则直接调用 `f.get()`，它会等到结果就绪。`join()` 是 `std::thread` 的成员函数，本例没有可供调用者 `join()` 的线程对象。
+> 💡 本例中，`f` 是 `std::async` 返回的 `std::future<int>` 对象。只想等结果就绪，可以调用 `f.wait()`，这就是旧稿把 `wait()` 称为“屏障”的意思。要取结果则直接调用 `f.get()`，它会等到结果就绪。`join()` 是 `std::thread` 的成员函数，本例没有可供调用者 `join()` 的线程对象。
 
 ---
 
