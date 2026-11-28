@@ -288,7 +288,10 @@ bool wait_loop()
 }
 ```
 
-如果在自己的循环里反复调用 `cv.wait_for(lk, std::chrono::milliseconds(500))`，每次都会重新开始一段 500 毫秒的等待。上例用 `steady_clock` 只算一次截止时刻，第 490 毫秒复查后就只剩约 10 毫秒。也可以只调用一次带谓词的 `cv.wait_for(lk, std::chrono::milliseconds(500), pred)`，由它在同一段时限内复查，返回值表示最终检查时条件是否成立。
+- 如果在自己的循环里反复调用 `cv.wait_for(lk, std::chrono::milliseconds(500))`，每次都会重新开始一段 500 毫秒的等待。
+- 上例用 `steady_clock` 只算一次截止时刻，第 490 毫秒复查后就只剩约 10 毫秒。
+- 代码等待条件变量被唤醒或到达截止时间 `timeout`，超时返回 `true`，提前醒来并在截止时间前重新拿到锁则返回 `false`。
+- 也可以只调用一次带谓词的 `cv.wait_for(lk, std::chrono::milliseconds(500), pred)`，由它在同一段时限内复查，返回值表示最终检查时条件是否成立。
 
 **注意点**
 
