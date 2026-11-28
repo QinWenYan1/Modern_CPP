@@ -189,7 +189,7 @@ while (!notified) {  // 避免虚假唤醒
 
 **示例/实践**
 
-把队列及其同步操作放进同一个类以后，生产者和消费者只需调用下面两个成员函数。这里 `data_queue`、`mut` 和 `data_cond` 分别对应前例的队列、互斥量和条件变量。
+生产者用 `push` 放入任务。消费者愿意等任务时用 `wait_and_pop`，想检查一次就返回时用 `try_pop`。三个成员函数共用队列 `data_queue` 和互斥量 `mut`，`data_cond` 用来通知等待中的消费者。
 
 ```cpp
 void push(T new_value)
@@ -205,6 +205,16 @@ void wait_and_pop(T& value)
     data_cond.wait(lk,[this]{return !data_queue.empty();});
     value=data_queue.front();
     data_queue.pop();
+}
+
+bool try_pop(T& value)
+{
+    std::lock_guard<std::mutex> lk(mut);
+    if(data_queue.empty())
+        return false;
+    value=data_queue.front();
+    data_queue.pop();
+    return true;
 }
 ```
 
@@ -230,7 +240,8 @@ void wait_and_pop(T& value)
 
 **理论**
 
-**`notify_one()` 唤醒一个正在等待的线程，`notify_all()` 唤醒当前所有等待者。按这次变化能让谁继续工作来选。**
+- **`notify_one()` 唤醒一个正在等待的线程，`notify_all()` 唤醒当前所有等待者。**
+- **按这次变化能让谁继续工作来选。**
 
 **示例/实践**
 
