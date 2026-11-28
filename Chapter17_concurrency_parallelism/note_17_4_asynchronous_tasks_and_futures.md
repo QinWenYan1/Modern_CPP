@@ -139,7 +139,9 @@ if(f.wait_for(std::chrono::milliseconds(35))==std::future_status::ready)
 
 **理论**
 
-**`std::packaged_task` 把一个可调用对象和它的共享状态放在一起。打包时可以取出 `future`，以后哪个线程调用这个任务，函数就在哪个线程里执行。** `std::packaged_task<int()>` 中的 `int()` 表示函数无需参数，返回一个整数。
+- **`std::packaged_task` 把一个可调用对象和它的共享状态放在一起。**
+- **打包时可以取出 `future`，以后哪个线程调用这个任务，函数就在哪个线程里执行。** 
+- `std::packaged_task<int()>` 中的 `int()` 表示函数无需参数，返回一个整数。
 
 **示例/实践**
 
@@ -167,7 +169,8 @@ int main() {
 ```
 
 1. 构造 `task` 时保存 lambda。执行 `task.get_future()` 时，主线程取得接收端，lambda 还没有被这行代码调用。
-2. `std::thread(std::move(task))` 才启动线程。任务可移动、不可复制，因此这里移动它。新线程调用任务，lambda 返回的 `7` 自动存入共享状态。
+    - `task` 中 `int()` 为模版实参为函数类型
+2. `std::thread(std::move(task))` 才启动线程，**任务 `package_task` 可移动、不可复制**，因此这里移动它。新线程调用任务，lambda 返回的 `7` 自动存入共享状态。
 3. `detach()` 解除线程对象与执行线程的关联。主线程仍然持有 `result`，所以能等到结果并输出 `7`。
 
 如果换成已有的工作线程，提交者可以在取到 `future` 后把任务移动进队列。工作线程取出它、释放队列锁，再调用 `task()`。书中的图形界面线程就是这样接收需要在那个线程上执行的操作。
