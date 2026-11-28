@@ -29,6 +29,7 @@ ChapterNN_topic/                      # 每章一个目录，如 Chapter07_class
 ```
 
 - 章节目录命名格式：`ChapterNN_snake_case_topic/`（两位数字补零），例如 `Chapter16_templates_and_generic_programming/`。
+- 小节笔记的文件名由一级标题生成，格式为 `note_<章>_<节>_<完整英文篇名>.md`。括号内英文篇名的所有单词按原顺序转为小写，用下划线连接，保留原有拼写。例如 `17.4 异步任务与结果传递 (Asynchronous Tasks and Futures)` 对应 `note_17_4_asynchronous_tasks_and_futures.md`。交付前逐词核对。
 - 部分习题是文字作答，使用 `.md` 后缀（如 `exercise_16_1.md`）；个别习题文件命名不完全规范（如 `exercise_1_1_1.cpp`、`exercise_16_6_7.cpp`），**新文件请遵循规范命名，但不要批量重命名旧文件**。
 - 根目录另有：`README.md`（总导航 + 内嵌的笔记生成提示词）、`CLAUDE.md`（与本文内容互补的 Claude Code 指引）、`.gitignore`（仅忽略 `.vscode/`）。
 

@@ -26,7 +26,7 @@ ChapterNN_topic/
 
 - Chapters 1–16 are complete. Chapter 17 (`Chapter17_concurrency_parallelism/`, 并发与并行) is complete. Chapter 18 (`Chapter18_extension/`) is in progress — notes are being built incrementally from user-provided screenshots.
 - Each chapter README links to its notes and to the previous/next chapter and root README.
-- Note filenames use the pattern `note_<chapter>_<section>_<topic_slug>.md` (e.g., `note_7_1_defining_abstract_data_type.md`).
+- Derive each section note's filename from its H1 using `note_<chapter>_<section>_<full_english_title>.md`. Keep every word of the parenthesized English title in its original order and spelling, lowercase it, and use underscores between words. For example, `17.4 异步任务与结果传递 (Asynchronous Tasks and Futures)` maps to `note_17_4_asynchronous_tasks_and_futures.md`. Check the match before delivery.
 - Exercise filenames use the pattern `exercise_<chapter>_<number>.cpp`; grouped exercises use ranges (e.g., `exercise_12_6-7.cpp`).
 
 ## Note format
